@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { cancelPillNotification } from '../utils/notificationUtils';
 
 interface Pill {
   id: string;
@@ -7,6 +8,7 @@ interface Pill {
   time: string;
   frequency: number;
   taken: boolean;
+  notificationId?: string;
 }
 
 interface PillContextType {
@@ -67,7 +69,12 @@ export const PillProvider: React.FC<{ children: React.ReactNode }> = ({ children
     savePills(updatedPills);
   };
 
-  const deletePill = (id: string) => {
+  const deletePill = async (id: string) => {
+    const pillToDelete = pills.find(pill => pill.id === id);
+    if (pillToDelete?.notificationId) {
+      await cancelPillNotification(pillToDelete.notificationId);
+    }
+    
     const updatedPills = pills.filter(pill => pill.id !== id);
     setPills(updatedPills);
     savePills(updatedPills);

@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { usePills } from '../../contexts/PillContext';
 import PillItem from '../../components/pillitem';
+import Header from '@/components/Header';
 
 export default function HomeScreen() {
   const { pills, loadPills } = usePills();
@@ -19,12 +20,25 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
-      <FlatList
-        data={pills}
-        renderItem={({ item }) => <PillItem pill={item} />}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-      />
+      <Header />
+
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {pills.length === 0 ? (
+          <View style={styles.noPillsContainer}>
+            <Text style={styles.noPillsMessage}>Welcome!</Text>
+            <Text style={styles.noPillsMessage}>Track vitamins, supplements like creatine, or medications for health conditions.</Text>
+            <Text style={styles.noPillsMessage}>To add new pills, click down below on "Add Pill"</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={pills}
+            renderItem={({ item }) => <PillItem pill={item} />}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+          />
+        )}
+      </ScrollView>
+
       <Link href="/modal" asChild>
         <TouchableOpacity style={styles.addButton}>
           <Ionicons name="add" size={24} color="white" />
@@ -38,9 +52,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+    position: 'relative', // Ensures absolute elements inside it are positioned relative to this container
+  },
+  scrollContainer: {
+    flexGrow: 1, // This ensures ScrollView content grows to fill available space
   },
   listContent: {
-    padding: 16,
+    paddingBottom: 80,  // Padding for the space where the button will be
   },
   addButton: {
     position: 'absolute',
@@ -57,5 +75,28 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
+  },
+  title: {
+    fontSize: 25,
+    justifyContent: 'center',
+    display: 'flex',
+    margin: 'auto',
+    marginTop: 10,
+    marginBottom: 2,
+    backgroundColor: '#000',
+    color: '#fff',
+    padding: 10,
+    borderRadius: 10,
+  },
+  noPillsMessage: {
+    textAlign: 'center',
+    marginBottom: 10,
+    fontSize: 20,
+    marginHorizontal: 7,
+  },
+  noPillsContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 40, // Add margin top to avoid collision with header
   },
 });

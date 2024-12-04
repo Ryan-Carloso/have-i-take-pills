@@ -8,7 +8,7 @@ function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  return <FontAwesome size={28} {...props} />;
 }
 
 export default function TabLayout() {
@@ -23,7 +23,7 @@ export default function TabLayout() {
           name="index"
           options={{
             title: 'Pills',
-            tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+            tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           }}
         />
         <Tabs.Screen
@@ -32,6 +32,16 @@ export default function TabLayout() {
           options={{
             title: 'Add Pill',
             tabBarIcon: ({ color }) => <TabBarIcon name="plus" color={color} />,
+            
+          }}
+          
+        />
+          <Tabs.Screen
+          name="about"
+  
+          options={{
+            title: 'About',
+            tabBarIcon: ({ color }) => <TabBarIcon name="info" color={color} />,
             
           }}
           

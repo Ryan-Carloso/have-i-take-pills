@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "have-i-take-pills",
-    "slug": "have-i-take-pills",
+    "name": "DailyDose",
+    "slug": "DailyDose",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,12 +9,13 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#000"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ryancarlos111.DailyDose"
     },
     "android": {
       "adaptiveIcon": {
@@ -28,10 +29,28 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#ffffff",
+          "sounds": [
+            "./assets/sounds/notification-sound.wav"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "86835eee-d3bc-4f71-80a2-d91f20363b02"
+      }
     }
   }
 }

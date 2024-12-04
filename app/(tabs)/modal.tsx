@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
-import { TextInput, Button, Title, HelperText, useTheme } from 'react-native-paper';
+import { View, StyleSheet, Platform, Text, ScrollView } from 'react-native';
+import { TextInput, Button, Title, HelperText } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { usePills } from '../../contexts/PillContext';
+import { requestNotificationPermissions, schedulePillNotification } from '../../utils/notificationUtils';
+import * as Notifications from 'expo-notifications';
+import Header from '@/components/Header';
 
 interface Pill {
   id: string;
@@ -11,7 +14,16 @@ interface Pill {
   time: string;
   frequency: number;
   taken: boolean;
+  notificationId?: string;
 }
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function AddPillModal(): JSX.Element {
   const [name, setName] = useState<string>('');
@@ -21,7 +33,6 @@ export default function AddPillModal(): JSX.Element {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const { addPill } = usePills();
   const router = useRouter();
-  const theme = useTheme();
 
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
@@ -42,19 +53,26 @@ export default function AddPillModal(): JSX.Element {
   const handleAddPill = async (): Promise<void> => {
     if (validateForm()) {
       try {
+        const permissionGranted = await requestNotificationPermissions();
+        let notificationId;
+
+        if (permissionGranted) {
+          notificationId = await schedulePillNotification(name, time);
+        }
+
         const newPill: Pill = {
           id: Date.now().toString(),
           name,
           time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           frequency: parseInt(frequency, 10),
           taken: false,
+          notificationId,
         };
 
-        await addPill(newPill);
+        addPill(newPill);
         router.back();
       } catch (error) {
         console.error('Error adding pill:', error);
-        // You might want to show an error message to the user here
       }
     }
   };
@@ -64,68 +82,87 @@ export default function AddPillModal(): JSX.Element {
   };
 
   return (
-    <View style={styles.container}>
-      <Title style={[styles.title, { color: '#2e7d32' }]}>Add New Pill</Title>
-      <TextInput
-        label="Pill Name"
-        value={name}
-        onChangeText={setName}
-        style={styles.input}
-        error={!!errors.name}
-      />
-      <HelperText type="error" visible={!!errors.name}>
-        {errors.name}
-      </HelperText>
+    <ScrollView style={styles.container}>
+        <Text style={styles.title}>💊 Have I Taken My Pills?</Text>
 
-      <Button onPress={showTimepicker} mode="outlined" style={styles.input}>
-        {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-      </Button>
-      {showTimePicker && (
-        <DateTimePicker
-          testID="dateTimePicker"
-          value={time}
-          mode="time"
-          is24Hour={true}
-          display="default"
-          onChange={(event, selectedTime) => {
-            setShowTimePicker(Platform.OS === 'ios');
-            if (selectedTime) {
-              setTime(selectedTime);
-            }
-          }}
+        <Text style={styles.description}>
+          Never forget your daily supplements or medications again! This app is your personal reminder to stay healthy and consistent.
+        </Text>
+      <View style={styles.card}>
+        <Title style={styles.addTitle}>Add a New Pill</Title>
+        <TextInput
+          label="Pill Name"
+          value={name}
+          onChangeText={setName}
+          style={styles.input}
+          error={!!errors.name}
+          mode="outlined"
         />
-      )}
+        <Text style={[styles.DescText, { marginBottom: -10, marginTop: 5, }]}>Enter the name of the medication or supplement, e.g., Creatine.</Text>
+        <HelperText type="error" visible={!!errors.name}>
+          {errors.name}
+        </HelperText>
 
-      <TextInput
-        label="Frequency (days)"
-        value={frequency}
-        onChangeText={setFrequency}
-        keyboardType="numeric"
-        style={styles.input}
-        error={!!errors.frequency}
-      
-      />
-      <HelperText type="error" visible={!!errors.frequency}>
-        {errors.frequency}
-      </HelperText>
+        <Button
+          onPress={showTimepicker}
+          mode="outlined"
+          style={styles.input}
+          labelStyle={{ color: '#1E88E5' }}>
+          ⏰ {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </Button>
+        {showTimePicker && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={time}
+            mode="time"
+            is24Hour={true}
+            display="default"
+            onChange={(event, selectedTime) => {
+              setShowTimePicker(Platform.OS === 'ios');
+              if (selectedTime) {
+                setTime(selectedTime);
+              }
+            }}
+          />
+        )}
+        <Text style={[styles.DescText, { marginBottom: 5 }]}>Select the time of day you’d like to receive your reminder.</Text>
 
-      <View style={styles.buttonContainer}>
-        <Button 
-          mode="contained" 
-          onPress={handleAddPill} 
-          style={styles.button}
-          buttonColor="#2e7d32">
-          Add Pill
-        </Button>
-        <Button 
-          mode="outlined" 
-          onPress={() => router.back()} 
-          style={styles.button}
-          textColor="#2e7d32">
-          Cancel
-        </Button>
+        <TextInput
+          label="Frequency (days)"
+          value={frequency}
+          onChangeText={setFrequency}
+          keyboardType="numeric"
+          style={styles.input}
+          error={!!errors.frequency}
+          mode="outlined"
+        />
+
+        <Text style={[styles.DescText, { marginTop: 5 }]}>
+          Choose the frequency: enter 1 for daily, 2 for every two days, and so on.
+        </Text>
+        <HelperText type="error" visible={!!errors.frequency}>
+          {errors.frequency}
+        </HelperText>
+
+        <View style={styles.buttonContainer}>
+          <Button
+            mode="contained"
+            onPress={handleAddPill}
+            style={styles.button}
+            labelStyle={{ color: 'white' }}
+            buttonColor="#4CAF50">
+            Add Pill
+          </Button>
+          <Button
+            mode="outlined"
+            onPress={() => router.back()}
+            style={styles.button}
+            textColor="#4CAF50">
+            Cancel
+          </Button>
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -133,23 +170,50 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    // backgroundColor removed from here as we're applying it inline
+    backgroundColor: '#F3F4F6',
+    marginTop: 7,
+  },
+  DescText: {
+    color: "gray"
+  },
+  card: {
+    padding: 16,
+    backgroundColor: '#FFF',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
   },
   title: {
-    marginBottom: 20,
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 7,
+  },
+  addTitle: {
+    fontSize: 22,
+    marginBottom: 7,
     textAlign: 'center',
+    color: '#4CAF50',
+  },
+  description: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 15,
+    lineHeight: 22,
   },
   input: {
-    marginBottom: 12,
-    backgroundColor: '#fff' 
+    marginBottom: 7,
+    marginTop: 7,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: 7,
   },
   button: {
     flex: 1,
-    marginHorizontal: 5,
+    marginHorizontal: 8,
   },
 });
