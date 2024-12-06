@@ -21,7 +21,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ryancarlos111.DailyDose"
     },
     "web": {
       "bundler": "metro",
@@ -33,11 +34,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/notification-icon.png",
-          "color": "#ffffff",
-          "sounds": [
-            "./assets/sounds/notification-sound.wav"
-          ]
+          "icon": "./assets/images/icon.png",
+          "color": "#ffffff"
         }
       ]
     ],

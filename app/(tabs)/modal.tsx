@@ -6,7 +6,6 @@ import { useRouter } from 'expo-router';
 import { usePills } from '../../contexts/PillContext';
 import { requestNotificationPermissions, schedulePillNotification } from '../../utils/notificationUtils';
 import * as Notifications from 'expo-notifications';
-import Header from '@/components/Header';
 
 interface Pill {
   id: string;
@@ -78,7 +77,7 @@ export default function AddPillModal(): JSX.Element {
   };
 
   const showTimepicker = () => {
-    setShowTimePicker(true);
+    setShowTimePicker(!showTimePicker);  // Alterna a visibilidade do picker
   };
 
   return (
@@ -94,23 +93,21 @@ export default function AddPillModal(): JSX.Element {
           label="Pill Name"
           value={name}
           onChangeText={setName}
-          style={styles.input}
           error={!!errors.name}
+          style={styles.input}
           mode="outlined"
         />
-        <Text style={[styles.DescText, { marginBottom: -10, marginTop: 5, }]}>Enter the name of the medication or supplement, e.g., Creatine.</Text>
-        <HelperText type="error" visible={!!errors.name}>
+        <HelperText style={{marginTop: -10}}  type="error" visible={!!errors.name}>
           {errors.name}
         </HelperText>
+        <Text style={[styles.DescText, { marginBottom: 10, marginTop: -5, }]}>Enter the name of the medication or supplement, e.g., Creatine.</Text>
 
-        <Button
-          onPress={showTimepicker}
-          mode="outlined"
-          style={styles.input}
-          labelStyle={{ color: '#1E88E5' }}>
-          ⏰ {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </Button>
-        {showTimePicker && (
+
+        <View
+        style={styles.timepicker}
+        
+        >
+          <Text>⏰ </Text>
           <DateTimePicker
             testID="dateTimePicker"
             value={time}
@@ -118,14 +115,15 @@ export default function AddPillModal(): JSX.Element {
             is24Hour={true}
             display="default"
             onChange={(event, selectedTime) => {
-              setShowTimePicker(Platform.OS === 'ios');
+              setShowTimePicker(false);  // Fecha o picker após a seleção
               if (selectedTime) {
                 setTime(selectedTime);
               }
             }}
           />
-        )}
-        <Text style={[styles.DescText, { marginBottom: 5 }]}>Select the time of day you’d like to receive your reminder.</Text>
+          </View>
+
+        <Text style={[styles.DescText, { marginBottom: 5, marginTop: 5 }]}>Select the time of day you’d like to receive your reminder.</Text>
 
         <TextInput
           label="Frequency (days)"
@@ -136,13 +134,13 @@ export default function AddPillModal(): JSX.Element {
           error={!!errors.frequency}
           mode="outlined"
         />
-
-        <Text style={[styles.DescText, { marginTop: 5 }]}>
-          Choose the frequency: enter 1 for daily, 2 for every two days, and so on.
-        </Text>
-        <HelperText type="error" visible={!!errors.frequency}>
+        <HelperText style={{marginTop: -10}}  type="error" visible={!!errors.frequency}>
           {errors.frequency}
         </HelperText>
+
+        <Text style={[styles.DescText, { marginTop: -5 }]}>
+          Choose the frequency: enter 1 for daily, 2 for every two days, and so on.
+        </Text>
 
         <View style={styles.buttonContainer}>
           <Button
@@ -206,6 +204,17 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 7,
     marginTop: 7,
+    
+  },
+  timepicker: {
+    margin: 'auto',
+    marginBottom: 7,
+    marginTop: 7,
+    display: 'flex',
+    flexDirection: "row",
+    alignItems: 'center',
+    paddingRight: 20,
+
   },
   buttonContainer: {
     flexDirection: 'row',

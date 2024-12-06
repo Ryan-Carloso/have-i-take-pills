@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
-import Header from '@/components/Header';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function AboutScreen() {
