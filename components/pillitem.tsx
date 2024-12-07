@@ -26,7 +26,7 @@ export default function PillItem({ pill }: PillItemProps) {
         <View>
           <Text style={styles.name}>{pill.name}</Text>
           <Text style={styles.details}>
-            Every {pill.frequency} day(s) at {pill.time}
+            Every {pill.frequency} at {pill.time}
           </Text>
         </View>
         <View style={[styles.status, pill.taken && styles.statusTaken]} />

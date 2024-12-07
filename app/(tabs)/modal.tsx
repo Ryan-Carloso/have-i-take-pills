@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Platform, Text, ScrollView } from 'react-native';
-import { TextInput, Button, Title, HelperText } from 'react-native-paper';
+import { View, StyleSheet, Text, ScrollView, SafeAreaView, Pressable } from 'react-native';
+import { TextInput, Title, HelperText, Button } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { usePills } from '../../contexts/PillContext';
@@ -11,7 +11,7 @@ interface Pill {
   id: string;
   name: string;
   time: string;
-  frequency: number;
+  frequency: string;
   taken: boolean;
   notificationId?: string;
 }
@@ -27,8 +27,7 @@ Notifications.setNotificationHandler({
 export default function AddPillModal(): JSX.Element {
   const [name, setName] = useState<string>('');
   const [time, setTime] = useState<Date>(new Date());
-  const [frequency, setFrequency] = useState<string>('1');
-  const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
+  const [frequency, setFrequency] = useState<string>('daily');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const { addPill } = usePills();
   const router = useRouter();
@@ -40,9 +39,8 @@ export default function AddPillModal(): JSX.Element {
       newErrors.name = 'Pill name is required';
     }
 
-    const frequencyNum = parseInt(frequency, 10);
-    if (isNaN(frequencyNum) || frequencyNum < 1) {
-      newErrors.frequency = 'Frequency must be a positive number';
+    if (!['daily', 'every 2 days', 'weekly'].includes(frequency)) {
+      newErrors.frequency = 'Frequency must be daily, every 2 days, or weekly';
     }
 
     setErrors(newErrors);
@@ -56,14 +54,14 @@ export default function AddPillModal(): JSX.Element {
         let notificationId;
 
         if (permissionGranted) {
-          notificationId = await schedulePillNotification(name, time);
+          notificationId = await schedulePillNotification(name, time, frequency); // Incluímos a frequência aqui
         }
 
         const newPill: Pill = {
           id: Date.now().toString(),
           name,
           time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          frequency: parseInt(frequency, 10),
+          frequency,
           taken: false,
           notificationId,
         };
@@ -76,153 +74,218 @@ export default function AddPillModal(): JSX.Element {
     }
   };
 
-  const showTimepicker = () => {
-    setShowTimePicker(!showTimePicker);  // Alterna a visibilidade do picker
+  const selectFrequency = (freq: string) => {
+    setFrequency(freq);
   };
 
   return (
-    <ScrollView style={styles.container}>
-        <Text style={styles.title}>💊 Have I Taken My Pills?</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>💊 Have I Taken My Pills?</Text>
+          <Text style={styles.description}>
+            Never forget your daily supplements or medications again! This app is your personal reminder to stay healthy and consistent.
+          </Text>
+        </View>
 
-        <Text style={styles.description}>
-          Never forget your daily supplements or medications again! This app is your personal reminder to stay healthy and consistent.
-        </Text>
-      <View style={styles.card}>
-        <Title style={styles.addTitle}>Add a New Pill</Title>
-        <TextInput
-          label="Pill Name"
-          value={name}
-          onChangeText={setName}
-          error={!!errors.name}
-          style={styles.input}
-          mode="outlined"
-        />
-        <HelperText style={{marginTop: -10}}  type="error" visible={!!errors.name}>
-          {errors.name}
-        </HelperText>
-        <Text style={[styles.DescText, { marginBottom: 10, marginTop: -5, }]}>Enter the name of the medication or supplement, e.g., Creatine.</Text>
-
-
-        <View
-        style={styles.timepicker}
-        
-        >
-          <Text>⏰ </Text>
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={time}
-            mode="time"
-            is24Hour={true}
-            display="default"
-            onChange={(event, selectedTime) => {
-              setShowTimePicker(false);  // Fecha o picker após a seleção
-              if (selectedTime) {
-                setTime(selectedTime);
-              }
-            }}
+        <View style={styles.card}>
+          <Title style={styles.addTitle}>Add a New Pill</Title>
+          <Text style={styles.helperText}>Enter the name of the medication or supplement, e.g., Creatine.</Text>
+          <TextInput
+            label="Pill Name"
+            value={name}
+            onChangeText={setName}
+            error={!!errors.name}
+            style={styles.input}
+            mode="outlined"
           />
+          <HelperText type="error" visible={!!errors.name}>
+            {errors.name}
+          </HelperText>
+          <Text style={styles.helperText}>Select the time of day you'd like to receive your reminder.</Text>
+          <View style={styles.timepicker}>
+            <Text style={styles.timeLabel}>⏰ Reminder Time:</Text>
+            <DateTimePicker
+              testID="dateTimePicker"
+              value={time}
+              mode="time"
+              is24Hour={true}
+              display="default"
+              onChange={(event, selectedTime) => {
+                if (selectedTime) {
+                  setTime(selectedTime);
+                }
+              }}
+              style={styles.datePicker}
+            />
           </View>
 
-        <Text style={[styles.DescText, { marginBottom: 5, marginTop: 5 }]}>Select the time of day you’d like to receive your reminder.</Text>
+          <Text style={styles.frequencyLabel}>Frequency</Text>
+          <View style={styles.frequencyButtons}>
+            {['Daily', 'Every 2 Days', 'Weekly'].map((freq) => (
+              <Pressable
+                key={freq}
+                onPress={() => selectFrequency(freq.toLowerCase())}
+                style={[
+                  styles.frequencyButton,
+                  frequency === freq.toLowerCase() && styles.selectedFrequencyButton,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.frequencyButtonLabel,
+                    frequency === freq.toLowerCase() && styles.selectedFrequencyLabel,
+                  ]}
+                >
+                  {freq}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
 
-        <TextInput
-          label="Frequency (days)"
-          value={frequency}
-          onChangeText={setFrequency}
-          keyboardType="numeric"
-          style={styles.input}
-          error={!!errors.frequency}
-          mode="outlined"
-        />
-        <HelperText style={{marginTop: -10}}  type="error" visible={!!errors.frequency}>
-          {errors.frequency}
-        </HelperText>
-
-        <Text style={[styles.DescText, { marginTop: -5 }]}>
-          Choose the frequency: enter 1 for daily, 2 for every two days, and so on.
-        </Text>
-
-        <View style={styles.buttonContainer}>
-          <Button
-            mode="contained"
-            onPress={handleAddPill}
-            style={styles.button}
-            labelStyle={{ color: 'white' }}
-            buttonColor="#4CAF50">
-            Add Pill
-          </Button>
-          <Button
-            mode="outlined"
-            onPress={() => router.back()}
-            style={styles.button}
-            textColor="#4CAF50">
-            Cancel
-          </Button>
+          <View style={styles.buttonContainer}>
+            <Button
+              mode="contained"
+              onPress={handleAddPill}
+              style={styles.addButton}
+              labelStyle={styles.buttonLabel}
+            >
+              Add Pill
+            </Button>
+            <Button
+              mode="outlined"
+              onPress={() => router.back()}
+              style={styles.cancelButton}
+              labelStyle={styles.buttonLabelCancel}
+            >
+              Cancel
+            </Button>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
+
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+  },
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#F3F4F6',
-    marginTop: 7,
   },
-  DescText: {
-    color: "gray"
-  },
-  card: {
-    padding: 16,
-    backgroundColor: '#FFF',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
+  header: {
+    marginBottom: 20,
   },
   title: {
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 7,
-  },
-  addTitle: {
-    fontSize: 22,
-    marginBottom: 7,
-    textAlign: 'center',
-    color: '#4CAF50',
+    marginBottom: 10,
   },
   description: {
     fontSize: 16,
     color: '#555',
-    marginBottom: 15,
-    lineHeight: 22,
+    lineHeight: 24,
+  },
+  card: {
+    padding: 20,
+    backgroundColor: '#FFF',
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 5,
+  },
+  addTitle: {
+    fontSize: 24,
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#4CAF50',
+    fontWeight: 'bold',
   },
   input: {
-    marginBottom: 7,
-    marginTop: 7,
-    
+    marginBottom: 5,
+  },
+  helperText: {
+    color: '#666',
+    marginBottom: 10,
+    fontSize: 14,
   },
   timepicker: {
-    margin: 'auto',
-    marginBottom: 7,
-    marginTop: 7,
-    display: 'flex',
-    flexDirection: "row",
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: 20,
-
+    marginBottom: 15,
+    maxWidth: 290,
+    margin: 'auto'
+    
+    
+  },
+  timeLabel: {
+    fontSize: 16,
+    marginRight: 10,
+  },
+  frequencyLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+  },
+  frequencyButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  frequencyButton: {
+    flex: 1,
+    marginHorizontal: 2,
+    backgroundColor: '#FFF', // Default background color
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  frequencyButtonLabel: {
+    fontSize: 14,
+    textAlign: 'center',
+    color: '#4CAF50', // Default text color
+  },
+  selectedFrequencyButton: {
+    backgroundColor: '#4CAF50', // Green background for selected
+  },
+  selectedFrequencyLabel: {
+    color: '#fff', // White text for selected
+  },
+  datePicker: {
+    flex: 1,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 7,
+    marginTop: 20,
   },
-  button: {
+  addButton: {
     flex: 1,
-    marginHorizontal: 8,
+    marginRight: 5,
+    backgroundColor: '#4CAF50',
+  },
+  cancelButton: {
+    flex: 1,
+    marginLeft: 5,
+    borderColor: '#4CAF50',
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  buttonLabelCancel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
   },
 });
