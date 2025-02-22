@@ -14,15 +14,22 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   return (
     <PillProvider>
-      <Tabs
-        screenOptions={{
-          tabBarActiveTintColor: Colors['light'].tint,
-          headerShown: false,
-        }}>
+<Tabs
+  screenOptions={{
+    tabBarActiveTintColor: Colors['light'].tint,
+    headerShown: false,
+    tabBarStyle: {
+      marginBottom: -20, // Ajuste conforme necessário
+      borderRadius: 10, // Opcional: arredondar a borda
+      backgroundColor: 'white', // Ajuste a cor conforme o design
+    },
+  }}
+>
         <Tabs.Screen
           name="index"
           options={{
             title: 'Pills',
+            headerShown: false,
             tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           }}
         />

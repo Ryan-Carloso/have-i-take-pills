@@ -25,7 +25,7 @@ export default function App() {
           title: "Notificação",
           body: message,
         },
-        trigger: {},
+        trigger: null,
       });
     }, 10000); // 1000 milissegundos = 1 segundo (apenas para agendar a execução do código)
   };

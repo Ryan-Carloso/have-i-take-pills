@@ -1,12 +1,22 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Text } from 'react-native';
-import { Link } from 'expo-router';
+import { View, StyleSheet, FlatList, TouchableOpacity, Text, Pressable } from 'react-native';
+import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { usePills } from '../../contexts/PillContext';
 import PillItem from '../../components/pillitem';
 import Header from '@/components/Header';
+import EmptyState from '../../components/EmptyState';
+
+const THEME = {
+  primary: '#2D5A27',
+  background: '#FFFFFF',
+  surface: '#F8F9FA',
+  text: '#1A1A1A',
+  textSecondary: '#6B7280',
+  accent: '#4CAF50',
+};
 
 export default function HomeScreen() {
   const { pills, loadPills } = usePills();
@@ -17,33 +27,29 @@ export default function HomeScreen() {
     }, [loadPills])
   );
 
+
   return (
     <View style={styles.container}>
-      <StatusBar style="auto" />
-      <Header />
+      <StatusBar style="light" />
+      
+      <Header/>
+      <EmptyState />
 
       {pills.length === 0 ? (
-        <View style={styles.noPillsContainer}>
-          <Text style={styles.noPillsMessage}>Welcome!</Text>
-          <Text style={styles.noPillsMessage}>
-            Track vitamins, supplements like creatine, or medications for health conditions.
-          </Text>
-          <Text style={styles.noPillsMessage}>To add new pills, click down below on "Add Pill"</Text>
-        </View>
+        <EmptyState />
       ) : (
         <FlatList
           data={pills}
           renderItem={({ item }) => <PillItem pill={item} />}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
         />
       )}
 
-      <Link href="/modal" asChild>
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity onPress={() => router.push("/modal")} style={styles.fab} activeOpacity={0.9}>
           <Ionicons name="add" size={24} color="white" />
         </TouchableOpacity>
-      </Link>
     </View>
   );
 }
@@ -51,49 +57,40 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    position: 'relative',
+    backgroundColor: THEME.background,
+  },
+  header: {
+    backgroundColor: THEME.primary,
+    paddingTop: 60,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomRightRadius: 24,
+    borderBottomLeftRadius: 24,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: 'white',
+    textAlign: 'center',
   },
   listContent: {
-    paddingBottom: 80,
+    padding: 16,
+    paddingBottom: 100,
   },
-  addButton: {
+  fab: {
     position: 'absolute',
     bottom: 24,
     right: 24,
-    backgroundColor: '#4CAF50',
+    backgroundColor: THEME.primary,
     width: 56,
     height: 56,
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  title: {
-    fontSize: 25,
-    justifyContent: 'center',
-    display: 'flex',
-    margin: 'auto',
-    marginTop: 10,
-    marginBottom: 2,
-    backgroundColor: '#000',
-    color: '#fff',
-    padding: 10,
-    borderRadius: 10,
-  },
-  noPillsMessage: {
-    textAlign: 'center',
-    marginBottom: 10,
-    fontSize: 20,
-    marginHorizontal: 7,
-  },
-  noPillsContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 40,
+    shadowColor: THEME.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
 });
