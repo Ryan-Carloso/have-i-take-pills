@@ -1,9 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { THEME } from './Theme'
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-
+import React from "react";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import { THEME } from "./Theme";
+import { ExternalPathString, router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function EmptyState() {
   return (
@@ -16,23 +15,21 @@ export default function EmptyState() {
         Track your daily medications, vitamins, and supplements all in one place
       </Text>
       <Pressable
-  onPress={() => {
-    console.log('aquii');
-    router.push("/modal");
-  }}
-  style={styles.emptyStateButton}
-  pointerEvents="auto"  // Assegura que o botão responda aos toques
->
-  <Text style={styles.emptyStateButtonText}>Add Your First Pill</Text>
-</Pressable>    </View>
+        onPress={() => router.push("/modal" as unknown as ExternalPathString)}
+        style={styles.emptyStateButton}
+        pointerEvents="auto" // Assegura que o botão responda aos toques
+      >
+        <Text style={styles.emptyStateButtonText}>Add Your First Pill</Text>
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 24,
   },
   emptyStateIcon: {
@@ -40,20 +37,20 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     backgroundColor: `${THEME.primary}10`,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 24,
   },
   emptyStateTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: "600",
     color: THEME.text,
     marginBottom: 12,
   },
   emptyStateDescription: {
     fontSize: 16,
     color: THEME.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 32,
     lineHeight: 24,
   },
@@ -63,11 +60,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     zIndex: 1, // Adicione esta linha
-
   },
   emptyStateButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

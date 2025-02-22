@@ -1,6 +1,7 @@
+// @ts-ignore
 import React from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity, Text, Pressable } from 'react-native';
-import { router } from 'expo-router';
+import { ExternalPathString, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -33,7 +34,6 @@ export default function HomeScreen() {
       <StatusBar style="light" />
       
       <Header/>
-      <EmptyState />
 
       {pills.length === 0 ? (
         <EmptyState />
@@ -47,9 +47,15 @@ export default function HomeScreen() {
         />
       )}
 
-        <TouchableOpacity onPress={() => router.push("/modal")} style={styles.fab} activeOpacity={0.9}>
-          <Ionicons name="add" size={24} color="white" />
-        </TouchableOpacity>
+<TouchableOpacity
+  onPress={() => router.push("/modal" as unknown as ExternalPathString)}
+  style={styles.fab}
+  activeOpacity={0.9}
+>
+  <Ionicons name="add" size={24} color="white" />
+</TouchableOpacity>
+
+
     </View>
   );
 }
