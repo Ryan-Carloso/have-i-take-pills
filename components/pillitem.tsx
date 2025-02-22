@@ -1,8 +1,18 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { GestureHandlerRootView, PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
-import { usePills } from '../contexts/PillContext';
-import { THEME } from './Theme';
+import React, { useState, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
+import {
+  GestureHandlerRootView,
+  PanGestureHandler,
+  PanGestureHandlerGestureEvent,
+} from "react-native-gesture-handler";
+import { usePills } from "../contexts/PillContext";
+import { THEME } from "./Theme";
 
 interface Pill {
   id: string;
@@ -28,7 +38,7 @@ export default function PillItem({ pill }: PillItemProps) {
 
   const onHandlerStateChange = (event: PanGestureHandlerGestureEvent) => {
     if (event.nativeEvent.oldState === 4) {
-      console.log('Gesture ended', event.nativeEvent.translationX);
+      console.log("Gesture ended", event.nativeEvent.translationX);
       if (event.nativeEvent.translationX < -50) {
         // If swiped more than 50 pixels to the left, show delete button
         setIsDeleteVisible(true);
@@ -54,9 +64,15 @@ export default function PillItem({ pill }: PillItemProps) {
         onGestureEvent={onGestureEvent}
         onHandlerStateChange={onHandlerStateChange}
       >
-        <Animated.View style={[styles.pillContainer, { transform: [{ translateX }] }]}>
+        <Animated.View
+          style={[styles.pillContainer, { transform: [{ translateX }] }]}
+        >
           <TouchableOpacity
-            style={[styles.pillContent, pill.taken && styles.taken]}
+            style={[
+              styles.pillContent,
+              pill.taken && styles.taken,
+              isDeleteVisible && { borderRadius: 0 },
+            ]}
             onPress={() => togglePillTaken(pill.id)}
           >
             <View>
@@ -68,7 +84,7 @@ export default function PillItem({ pill }: PillItemProps) {
             <View style={[styles.status, pill.taken && styles.statusTaken]} />
           </TouchableOpacity>
           {isDeleteVisible && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.deleteButton}
               onPress={() => deletePill(pill.id)}
             >
@@ -84,61 +100,59 @@ export default function PillItem({ pill }: PillItemProps) {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 12,
-    
   },
   pillContainer: {
-    flexDirection: 'row',
-    width: '100%',
-
+    flexDirection: "row",
+    width: "100%",
   },
   pillContent: {
     flex: 1,
     backgroundColor: THEME.cardPill,
     borderRadius: 8,
     padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   taken: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: THEME.accent,
   },
   name: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
-    color: THEME.white
+    color: THEME.white,
   },
   details: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: THEME.white
+    fontWeight: "bold",
+    color: THEME.white,
   },
   status: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#FFA000',
+    backgroundColor: "#FFA000",
   },
   statusTaken: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: THEME.accent,
   },
   deleteButton: {
-    backgroundColor: '#ff4444',
+    backgroundColor: "#ff4444",
     width: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderBottomRightRadius: 15,
     borderTopRightRadius: 15,
   },
   deleteButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
     fontSize: 20,
   },
 });
