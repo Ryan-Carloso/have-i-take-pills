@@ -28,7 +28,6 @@ Notifications.setNotificationHandler({
 export default function AddPillModal(): JSX.Element {
   const [name, setName] = useState<string>('');
   const [time, setTime] = useState<Date>(new Date());
-  const [frequency, setFrequency] = useState<string>('daily');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const { addPill } = usePills();
   const router = useRouter();
@@ -38,10 +37,6 @@ export default function AddPillModal(): JSX.Element {
 
     if (!name.trim()) {
       newErrors.name = 'Pill name is required';
-    }
-
-    if (!['daily', 'every 2 days', 'weekly'].includes(frequency)) {
-      newErrors.frequency = 'Frequency must be daily, every 2 days, or weekly';
     }
 
     setErrors(newErrors);
@@ -75,9 +70,6 @@ export default function AddPillModal(): JSX.Element {
     }
   };
 
-  const selectFrequency = (freq: string) => {
-    setFrequency(freq);
-  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
