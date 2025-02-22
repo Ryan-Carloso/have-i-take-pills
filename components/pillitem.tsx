@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { GestureHandlerRootView, PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import { usePills } from '../contexts/PillContext';
 
 interface Pill {
@@ -16,36 +17,77 @@ interface PillItemProps {
 
 export default function PillItem({ pill }: PillItemProps) {
   const { togglePillTaken, deletePill } = usePills();
+  const translateX = useRef(new Animated.Value(0)).current;
+  const [isDeleteVisible, setIsDeleteVisible] = useState(false);
+
+  const onGestureEvent = Animated.event<PanGestureHandlerGestureEvent>(
+    [{ nativeEvent: { translationX: translateX } }],
+    { useNativeDriver: true }
+  );
+
+  const onHandlerStateChange = (event: PanGestureHandlerGestureEvent) => {
+    if (event.nativeEvent.oldState === 4) {
+      console.log('Gesture ended', event.nativeEvent.translationX);
+      if (event.nativeEvent.translationX < -50) {
+        // If swiped more than 50 pixels to the left, show delete button
+        setIsDeleteVisible(true);
+        Animated.timing(translateX, {
+          toValue: -80,
+          duration: 200,
+          useNativeDriver: true,
+        }).start();
+      } else {
+        // Otherwise, reset position and hide delete button
+        setIsDeleteVisible(false);
+        Animated.spring(translateX, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      }
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={[styles.pillContent, pill.taken && styles.taken]}
-        onPress={() => togglePillTaken(pill.id)}
+    <GestureHandlerRootView style={styles.container}>
+      <PanGestureHandler
+        onGestureEvent={onGestureEvent}
+        onHandlerStateChange={onHandlerStateChange}
       >
-        <View>
-          <Text style={styles.name}>{pill.name}</Text>
-          <Text style={styles.details}>
-            Every {pill.frequency} at {pill.time}
-          </Text>
-        </View>
-        <View style={[styles.status, pill.taken && styles.statusTaken]} />
-      </TouchableOpacity>
-      <TouchableOpacity 
-        style={styles.deleteButton}
-        onPress={() => deletePill(pill.id)}
-      >
-        <Text style={styles.deleteButtonText}>×</Text>
-      </TouchableOpacity>
-    </View>
+        <Animated.View style={[styles.pillContainer, { transform: [{ translateX }] }]}>
+          <TouchableOpacity
+            style={[styles.pillContent, pill.taken && styles.taken]}
+            onPress={() => togglePillTaken(pill.id)}
+          >
+            <View>
+              <Text style={styles.name}>{pill.name}</Text>
+              <Text style={styles.details}>
+                Every {pill.frequency} at {pill.time}
+              </Text>
+            </View>
+            <View style={[styles.status, pill.taken && styles.statusTaken]} />
+          </TouchableOpacity>
+          {isDeleteVisible && (
+            <TouchableOpacity 
+              style={styles.deleteButton}
+              onPress={() => deletePill(pill.id)}
+            >
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            </TouchableOpacity>
+          )}
+        </Animated.View>
+      </PanGestureHandler>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 12,
+    overflow: 'hidden',
+  },
+  pillContainer: {
+    flexDirection: 'row',
+    width: '100%'
   },
   pillContent: {
     flex: 1,
@@ -84,21 +126,12 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     backgroundColor: '#ff4444',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
+    width: 80,
     justifyContent: 'center',
-    marginLeft: 8,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    alignItems: 'center',
   },
   deleteButtonText: {
     color: 'white',
-    fontSize: 24,
     fontWeight: 'bold',
   },
 });

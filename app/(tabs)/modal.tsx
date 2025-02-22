@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { usePills } from '../../contexts/PillContext';
 import { requestNotificationPermissions, schedulePillNotification } from '../../utils/notificationUtils';
 import * as Notifications from 'expo-notifications';
+import {THEME} from '@/components/Theme'
 
 interface Pill {
   id: string;
@@ -183,12 +184,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: THEME.text,
     marginBottom: 10,
   },
   description: {
     fontSize: 16,
-    color: '#555',
+    color: THEME.textSecondary,
     lineHeight: 24,
   },
   card: {
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginBottom: 20,
     textAlign: 'center',
-    color: '#4CAF50',
+    color: THEME.primary,
     fontWeight: 'bold',
   },
   input: {
@@ -252,10 +253,10 @@ const styles = StyleSheet.create({
   frequencyButtonLabel: {
     fontSize: 14,
     textAlign: 'center',
-    color: '#4CAF50', // Default text color
+    color: THEME.primary,
   },
   selectedFrequencyButton: {
-    backgroundColor: '#4CAF50', // Green background for selected
+    backgroundColor: THEME.primary,
   },
   selectedFrequencyLabel: {
     color: '#fff', // White text for selected
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
   addButton: {
     flex: 1,
     marginRight: 5,
-    backgroundColor: '#4CAF50',
+    backgroundColor: THEME.primary,
   },
   cancelButton: {
     flex: 1,

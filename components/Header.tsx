@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { THEME } from './Theme';
 
 export default function Header() {
   return (
@@ -15,7 +16,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2E7D32', // Fundo principal
+    backgroundColor: THEME.primary,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     shadowColor: '#000',
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: THEME.white,
     textAlign: 'center',
     textTransform: 'uppercase',
   },
