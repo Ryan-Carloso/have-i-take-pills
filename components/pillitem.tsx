@@ -75,12 +75,22 @@ export default function PillItem({ pill }: PillItemProps) {
             ]}
             onPress={() => togglePillTaken(pill.id)}
           >
-            <View>
-              <Text style={styles.name}>{pill.name}</Text>
-              <Text style={styles.details}>
-                Every {pill.frequency} at {pill.time}
-              </Text>
-            </View>
+            {pill.taken ? (
+              <View>
+                <Text style={styles.name}>{pill.name}</Text>
+                <Text style={styles.takenText}>
+                  Has already been taken today
+                </Text>
+              </View>
+            ) : (
+              <View>
+                <Text style={styles.name}>{pill.name}</Text>
+                <Text style={styles.details}>
+                  Every {pill.frequency} at {pill.time}
+                </Text>
+              </View>
+            )}
+
             <View style={[styles.status, pill.taken && styles.statusTaken]} />
           </TouchableOpacity>
           {isDeleteVisible && (
@@ -121,6 +131,12 @@ const styles = StyleSheet.create({
   },
   taken: {
     backgroundColor: THEME.accent,
+  },
+  takenText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: THEME.white,
+    marginTop: 4,
   },
   name: {
     fontSize: 18,
