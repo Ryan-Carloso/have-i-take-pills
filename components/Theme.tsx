@@ -5,5 +5,6 @@ export const THEME = {
     text: '#1A1A1A',
     textSecondary: '#6B7280',
     accent: '#4CAF50',
-    white: '#fff'
+    white: '#fff',
+    cardPill: '#008000'
   };

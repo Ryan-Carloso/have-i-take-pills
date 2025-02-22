@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import { usePills } from '../contexts/PillContext';
+import { THEME } from './Theme';
 
 interface Pill {
   id: string;
@@ -32,7 +33,7 @@ export default function PillItem({ pill }: PillItemProps) {
         // If swiped more than 50 pixels to the left, show delete button
         setIsDeleteVisible(true);
         Animated.timing(translateX, {
-          toValue: -80,
+          toValue: -10,
           duration: 200,
           useNativeDriver: true,
         }).start();
@@ -83,15 +84,16 @@ export default function PillItem({ pill }: PillItemProps) {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 12,
-    overflow: 'hidden',
+    
   },
   pillContainer: {
     flexDirection: 'row',
-    width: '100%'
+    width: '100%',
+
   },
   pillContent: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: THEME.cardPill,
     borderRadius: 8,
     padding: 16,
     flexDirection: 'row',
@@ -110,10 +112,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 4,
+    color: THEME.white
   },
   details: {
     fontSize: 14,
-    color: '#666',
+    fontWeight: 'bold',
+    color: THEME.white
   },
   status: {
     width: 12,
@@ -129,9 +133,12 @@ const styles = StyleSheet.create({
     width: 80,
     justifyContent: 'center',
     alignItems: 'center',
+    borderBottomRightRadius: 15,
+    borderTopRightRadius: 15,
   },
   deleteButtonText: {
     color: 'white',
     fontWeight: 'bold',
+    fontSize: 20,
   },
 });
