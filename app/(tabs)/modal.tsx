@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, ScrollView, SafeAreaView, Pressable } from 'react-native';
-import { TextInput, Title, HelperText, Button } from 'react-native-paper';
+import { View, StyleSheet, Text, ScrollView, SafeAreaView, Animated } from 'react-native';
+import { TextInput, Button } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { usePills } from '../../contexts/PillContext';
 import { requestNotificationPermissions, schedulePillNotification } from '../../utils/notificationUtils';
 import * as Notifications from 'expo-notifications';
-import {THEME} from '@/components/Theme'
+import { THEME } from '@/components/Theme';
 
 interface Pill {
   id: string;
   name: string;
   time: string;
-  frequency: string;
   taken: boolean;
   notificationId?: string;
 }
@@ -31,14 +30,21 @@ export default function AddPillModal(): JSX.Element {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const { addPill } = usePills();
   const router = useRouter();
+  const [fadeAnim] = useState(new Animated.Value(0));
+
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
-
     if (!name.trim()) {
-      newErrors.name = 'Pill name is required';
+      newErrors.name = 'Please enter a pill name';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -50,14 +56,13 @@ export default function AddPillModal(): JSX.Element {
         let notificationId;
 
         if (permissionGranted) {
-          notificationId = await schedulePillNotification(name, time, frequency); // Incluímos a frequência aqui
+          notificationId = await schedulePillNotification(name, time);
         }
 
         const newPill: Pill = {
           id: Date.now().toString(),
           name,
           time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          frequency,
           taken: false,
           notificationId,
         };
@@ -70,193 +75,192 @@ export default function AddPillModal(): JSX.Element {
     }
   };
 
-
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>💊 Have I Taken My Pills?</Text>
-          <Text style={styles.description}>
-            Never forget your daily supplements or medications again! This app is your personal reminder to stay healthy and consistent.
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+        <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
+          <View style={styles.pillIconContainer}>
+            <Text style={styles.pillIcon}>💊</Text>
+          </View>
+          
+          <Text style={styles.title}>Add New Medication</Text>
+          <Text style={styles.subtitle}>
+            Set up your medication reminder
           </Text>
-        </View>
 
-        <View style={styles.card}>
-          <Title style={styles.addTitle}>Add a New Pill</Title>
-          <Text style={styles.helperText}>Enter the name of the medication or supplement, e.g., Creatine.</Text>
-          <TextInput
-            label="Pill Name"
-            value={name}
-            onChangeText={setName}
-            error={!!errors.name}
-            style={styles.input}
-            mode="outlined"
-          />
-          <HelperText type="error" visible={!!errors.name}>
-            {errors.name}
-          </HelperText>
-          <Text style={styles.helperText}>Select the time of day you'd like to receive your reminder.</Text>
-          <View style={styles.timepicker}>
-            <Text style={styles.timeLabel}>⏰ Reminder Time:</Text>
-            <DateTimePicker
-              testID="dateTimePicker"
-              value={time}
-              mode="time"
-              is24Hour={true}
-              display="default"
-              onChange={(event, selectedTime) => {
-                if (selectedTime) {
-                  setTime(selectedTime);
-                }
-              }}
-              style={styles.datePicker}
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Medication Name</Text>
+            <TextInput
+              placeholder="e.g., Vitamin D, Aspirin"
+              value={name}
+              onChangeText={setName}
+              error={!!errors.name}
+              style={styles.input}
+              mode="outlined"
+              outlineColor={THEME.primary}
+              activeOutlineColor={THEME.primary}
+              theme={{ colors: { primary: THEME.primary } }}
             />
+            {errors.name && (
+              <Text style={styles.errorText}>{errors.name}</Text>
+            )}
           </View>
 
-          
+          <View style={styles.timeContainer}>
+            <Text style={styles.label}>Reminder Time</Text>
+            <View style={styles.timeWrapper}>
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={time}
+                mode="time"
+                is24Hour={true}
+                display="default"
+                onChange={(event, selectedTime) => {
+                  if (selectedTime) {
+                    setTime(selectedTime);
+                  }
+                }}
+                style={styles.timePicker}
+              />
+            </View>
+          </View>
+
           <View style={styles.buttonContainer}>
             <Button
               mode="contained"
               onPress={handleAddPill}
               style={styles.addButton}
+              contentStyle={styles.buttonContent}
               labelStyle={styles.buttonLabel}
             >
-              Add Pill
+              Add Medication
             </Button>
             <Button
               mode="outlined"
               onPress={() => router.back()}
               style={styles.cancelButton}
-              labelStyle={styles.buttonLabelCancel}
+              contentStyle={styles.buttonContent}
+              labelStyle={[styles.buttonLabel, styles.cancelButtonLabel]}
             >
               Cancel
             </Button>
           </View>
-        </View>
+        </Animated.View>
+        <Text style={styles.description}>
+            Never forget your daily supplements or medications again! This app is your personal reminder to stay healthy and consistent.
+          </Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#F8F9FA',
   },
   container: {
     flex: 1,
-    padding: 16,
   },
-  header: {
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: THEME.text,
-    marginBottom: 10,
+  contentContainer: {
+    padding: 20,
+    paddingTop: 40,
   },
   description: {
     fontSize: 16,
-    color: THEME.textSecondary,
+    color: THEME.text,
     lineHeight: 24,
+    marginTop: 20,
   },
   card: {
-    padding: 20,
-    backgroundColor: '#FFF',
-    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
     shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 8,
     elevation: 5,
   },
-  addTitle: {
+  pillIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#F0F9F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    alignSelf: 'center',
+  },
+  pillIcon: {
+    fontSize: 32,
+  },
+  title: {
     fontSize: 24,
-    marginBottom: 20,
+    fontWeight: '700',
+    color: THEME.text,
     textAlign: 'center',
-    color: THEME.primary,
-    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: THEME.textSecondary,
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  inputContainer: {
+    marginBottom: 24,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: THEME.text,
+    marginBottom: 8,
   },
   input: {
-    marginBottom: 5,
+    backgroundColor: '#FFFFFF',
   },
-  helperText: {
-    color: '#666',
-    marginBottom: 10,
+  errorText: {
+    color: '#DC2626',
     fontSize: 14,
+    marginTop: 4,
   },
-  timepicker: {
+  timeContainer: {
+    marginBottom: 32,
+  },
+  timeWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
-    maxWidth: 290,
-    margin: 'auto'
-    
-    
+    justifyContent: 'center',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 8,
   },
-  timeLabel: {
-    fontSize: 16,
-    marginRight: 10,
-  },
-  frequencyLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  frequencyButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  frequencyButton: {
-    flex: 1,
-    marginHorizontal: 2,
-    backgroundColor: '#FFF', // Default background color
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#4CAF50',
-  },
-  frequencyButtonLabel: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: THEME.primary,
-  },
-  selectedFrequencyButton: {
-    backgroundColor: THEME.primary,
-  },
-  selectedFrequencyLabel: {
-    color: '#fff', // White text for selected
-  },
-  datePicker: {
+  timePicker: {
     flex: 1,
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
+    gap: 12,
+  },
+  buttonContent: {
+    height: 48,
   },
   addButton: {
-    flex: 1,
-    marginRight: 5,
     backgroundColor: THEME.primary,
+    borderRadius: 12,
   },
   cancelButton: {
-    flex: 1,
-    marginLeft: 5,
-    borderColor: '#4CAF50',
+    borderColor: THEME.primary,
+    borderRadius: 12,
   },
   buttonLabel: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: '600',
   },
-  buttonLabelCancel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
+  cancelButtonLabel: {
+    color: THEME.primary,
   },
 });
