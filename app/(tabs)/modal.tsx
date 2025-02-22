@@ -121,29 +121,7 @@ export default function AddPillModal(): JSX.Element {
             />
           </View>
 
-          <Text style={styles.frequencyLabel}>Frequency</Text>
-          <View style={styles.frequencyButtons}>
-            {['Daily', 'Every 2 Days', 'Weekly'].map((freq) => (
-              <Pressable
-                key={freq}
-                onPress={() => selectFrequency(freq.toLowerCase())}
-                style={[
-                  styles.frequencyButton,
-                  frequency === freq.toLowerCase() && styles.selectedFrequencyButton,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.frequencyButtonLabel,
-                    frequency === freq.toLowerCase() && styles.selectedFrequencyLabel,
-                  ]}
-                >
-                  {freq}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
+          
           <View style={styles.buttonContainer}>
             <Button
               mode="contained"
