@@ -1,6 +1,6 @@
 // @ts-ignore
 import React from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Text, Pressable } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { ExternalPathString, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,6 +23,8 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#000" />
+
       <StatusBar style="light" />
       
       <Header/>

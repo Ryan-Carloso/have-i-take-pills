@@ -2,7 +2,8 @@ import React from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Tabs } from "expo-router";
 import { PillProvider } from "../../contexts/PillContext";
-import Colors from "@/constants/Colors";
+import { StatusBar } from "react-native";
+
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
@@ -14,12 +15,12 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   return (
     <PillProvider>
+      <StatusBar barStyle="dark-content" backgroundColor="#000" />
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: Colors["light"].tint,
           headerShown: false,
           tabBarStyle: {
-            marginBottom: -20, // Ajuste conforme necessário
+            marginBottom: -30, // Ajuste conforme necessário
             borderRadius: 10, // Opcional: arredondar a borda
             backgroundColor: "white", // Ajuste a cor conforme o design
           },
@@ -29,7 +30,6 @@ export default function TabLayout() {
           name="index"
           options={{
             title: "Pills",
-            headerShown: false,
             tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           }}
         />
