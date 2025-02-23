@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+//@ts-ignore
+import React, { useEffect, useState } from "react"; 
 import {
   ScrollView,
   StyleSheet,
@@ -57,7 +58,7 @@ const productSkus: ProductSkus = {
   }
 };
 
-export const Subscriptions: React.FC<SubscriptionsProps> = ({ navigation }) => {
+export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
   const { connected } = useIAP();
 
   const [loading, setLoading] = useState<boolean>(false);
