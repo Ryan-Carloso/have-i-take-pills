@@ -14,7 +14,7 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   return (
-    <PillProvider>
+    <PillProvider> 
       <StatusBar barStyle="light-content" backgroundColor="#000" />
       <Tabs
         screenOptions={{
@@ -25,6 +25,20 @@ export default function TabLayout() {
           },
         }}
       >
+      <Tabs.Screen
+        name="index"
+        options={{
+          tabBarStyle: { display: 'none' }, // Oculta as abas
+          href: null,
+        }}
+      />
+        <Tabs.Screen
+        name="Paywall"
+        options={{
+          //tabBarStyle: { display: 'none' }, // Oculta as abas
+          //href: null,
+        }}
+      />
         <Tabs.Screen
           name="home"
           options={{
@@ -32,11 +46,7 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           }}
         />
-                <Tabs.Screen
-          name="index"
-          options={{
-          }}
-        />
+
         <Tabs.Screen
           name="modal"
           options={{

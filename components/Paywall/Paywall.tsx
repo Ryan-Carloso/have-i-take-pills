@@ -190,15 +190,17 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
     <View key={product.productId} style={styles.subscriptionCard}>
       <Text style={styles.subscriptionTitle}>
         {product.title}
-        {product.productType === 'lifetime' && " (Lifetime)"}
+        {product.productType === 'lifetime' && " One-Time Offer"}
       </Text>
       <Text style={styles.subscriptionPrice}>{product.localizedPrice}</Text>
       <Text style={styles.subscriptionDescription}>{product.description}</Text>
       
       {product.productType === 'lifetime' && (
-        <Text style={styles.lifetimeNote}>
-          ★ One-time purchase, lifetime access
-        </Text>
+        <View>
+      <Text style={styles.lifetimeNote}>
+        ★ Launch deal! Lifetime premium FREE—ends March 15!
+      </Text>
+        </View>
       )}
       
       <TouchableOpacity
