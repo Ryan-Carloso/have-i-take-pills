@@ -15,13 +15,12 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   return (
     <PillProvider>
-      <StatusBar barStyle="dark-content" backgroundColor="#000" />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
       <Tabs
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
             marginBottom: -30, // Ajuste conforme necessário
-            borderRadius: 10, // Opcional: arredondar a borda
             backgroundColor: "white", // Ajuste a cor conforme o design
           },
         }}

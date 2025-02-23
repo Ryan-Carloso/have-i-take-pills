@@ -9,6 +9,7 @@ interface Pill {
   frequency: number;
   taken: boolean;
   notificationId?: string;
+  lastTakenDate?: string; // Added lastTakenDate
 }
 
 interface PillContextType {
@@ -17,6 +18,7 @@ interface PillContextType {
   togglePillTaken: (id: string) => void;
   loadPills: () => Promise<void>;
   deletePill: (id: string) => void;
+  updatePill: (updatedPill: Pill) => void; // Added updatePill
 }
 
 const PillContext = createContext<PillContextType | undefined>(undefined);
@@ -74,19 +76,28 @@ export const PillProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (pillToDelete?.notificationId) {
       await cancelPillNotification(pillToDelete.notificationId);
     }
-    
+
     const updatedPills = pills.filter(pill => pill.id !== id);
     setPills(updatedPills);
     savePills(updatedPills);
   };
 
+  const updatePill = (updatedPill: Pill) => {
+    const updatedPills = pills.map(pill =>
+      pill.id === updatedPill.id ? updatedPill : pill
+    );
+    setPills(updatedPills);
+    savePills(updatedPills);
+  }; // Added updatePill function
+
   return (
-    <PillContext.Provider value={{ 
-      pills, 
-      addPill, 
-      togglePillTaken, 
+    <PillContext.Provider value={{
+      pills,
+      addPill,
+      togglePillTaken,
       loadPills,
-      deletePill 
+      deletePill,
+      updatePill // Added updatePill to the context
     }}>
       {children}
     </PillContext.Provider>

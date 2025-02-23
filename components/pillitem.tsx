@@ -20,7 +20,7 @@ interface Pill {
   time: string;
   frequency: number;
   taken: boolean;
-  lastTakenDate: string; // Add last taken date field
+  lastTakenDate: string;
 }
 
 interface PillItemProps {
@@ -28,19 +28,33 @@ interface PillItemProps {
 }
 
 export default function PillItem({ pill }: PillItemProps) {
-  const { togglePillTaken, deletePill } = usePills();
+  const { togglePillTaken, deletePill, updatePill } = usePills();
   const translateX = useRef(new Animated.Value(0)).current;
   const [isDeleteVisible, setIsDeleteVisible] = useState(false);
 
-  // Reset pill taken status if it's a new day
-  useEffect(() => {
-    const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-    console.log("Data completa:", pill.time); // Log the complete time information
-    if (pill.lastTakenDate !== currentDate) {
-      // Reset taken status for the new day
-      pill.taken = false;
-      pill.lastTakenDate = currentDate;
+  const checkAndResetPillStatus = () => {
+    const currentDate = new Date();
+    const lastTakenDate = new Date(pill.lastTakenDate);
+    
+    // Reset hours to midnight for date comparison
+    currentDate.setHours(0, 0, 0, 0);
+    lastTakenDate.setHours(0, 0, 0, 0);
+
+    // If the dates are different and pill is marked as taken, reset it
+    if (currentDate.getTime() !== lastTakenDate.getTime() && pill.taken) {
+      updatePill({
+        ...pill,
+        taken: false,
+      });
     }
+  };
+
+  useEffect(() => {
+    checkAndResetPillStatus();
+    
+    // Check status every minute
+    const intervalId = setInterval(checkAndResetPillStatus, 60000);
+    return () => clearInterval(intervalId);
   }, [pill]);
 
   const onGestureEvent = Animated.event<PanGestureHandlerGestureEvent>(
@@ -50,9 +64,7 @@ export default function PillItem({ pill }: PillItemProps) {
 
   const onHandlerStateChange = (event: PanGestureHandlerGestureEvent) => {
     if (event.nativeEvent.oldState === 4) {
-      console.log("Gesture ended", event.nativeEvent.translationX);
       if (event.nativeEvent.translationX < -50) {
-        // If swiped more than 50 pixels to the left, show delete button
         setIsDeleteVisible(true);
         Animated.timing(translateX, {
           toValue: -10,
@@ -60,7 +72,6 @@ export default function PillItem({ pill }: PillItemProps) {
           useNativeDriver: true,
         }).start();
       } else {
-        // Otherwise, reset position and hide delete button
         setIsDeleteVisible(false);
         Animated.spring(translateX, {
           toValue: 0,
@@ -68,6 +79,19 @@ export default function PillItem({ pill }: PillItemProps) {
         }).start();
       }
     }
+  };
+
+  const handlePillTaken = () => {
+    const currentDate = new Date().toISOString();
+    
+    // First update the lastTakenDate
+    updatePill({
+      ...pill,
+      lastTakenDate: currentDate,
+    });
+    
+    // Then toggle the taken status
+    togglePillTaken(pill.id);
   };
 
   return (
@@ -85,20 +109,21 @@ export default function PillItem({ pill }: PillItemProps) {
               pill.taken && styles.taken,
               isDeleteVisible && { borderRadius: 0 },
             ]}
-            onPress={() => togglePillTaken(pill.id)}
+            onPress={handlePillTaken}
+            activeOpacity={0.7}
           >
             {pill.taken ? (
               <View>
                 <Text style={styles.name}>{pill.name}</Text>
                 <Text style={styles.takenText}>
-                Has already been taken today
+                  Has already been taken today
                 </Text>
               </View>
             ) : (
               <View>
                 <Text style={styles.name}>{pill.name}</Text>
                 <Text style={styles.details}>
-                  Every day at {pill.time.substring(11, 18)} {/* Display only HH:mm */}
+                  Next dose: {pill.time}
                 </Text>
               </View>
             )}
