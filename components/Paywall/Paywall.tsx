@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
   },
   noProductsText: {
     fontSize: 16,
-    color: '#546e7a',
+    color: '#546e7a', 
     textAlign: 'center',
     marginTop: 24,
   },
