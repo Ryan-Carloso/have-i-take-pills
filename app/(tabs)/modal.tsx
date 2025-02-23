@@ -102,7 +102,7 @@ export default function AddPillModal(): JSX.Element {
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Medication Name</Text>
             <TextInput
-              placeholder="e.g., Vitamin D, Aspirin"
+              placeholder="e.g., Creatine, Vitamin, etc"
               value={name}
               onChangeText={setName}
               error={!!errors.name}
