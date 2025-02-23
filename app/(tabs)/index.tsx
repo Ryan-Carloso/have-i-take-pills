@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import { useRouter } from 'expo-router';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
+import {THEME} from '@/components/Theme'
 
 const slides = [
   {
@@ -23,6 +24,7 @@ const slides = [
     text: 'This is the last slide.',
     backgroundColor: '#22bcb5',
   },
+  
 ];
 
 const styles = StyleSheet.create({
@@ -31,10 +33,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  image: {
-    width: 300,
-    height: 300,
-  },
+
   text: {
     color: 'white',
     fontSize: 20,
@@ -81,6 +80,17 @@ export default function componentName() {
       <Text style={styles.text}>{item.text}</Text>
     </View>
   );
+  const renderDoneButton = () => (
+    <View style={{padding: 10, backgroundColor: THEME.cardPill, borderRadius: 20,}} >
+      <Text style={{margin: 'auto', fontSize: 20, color: THEME.white, fontWeight: '900'}} >Next</Text>
+    </View>
+  );
+
+  const renderNextButton = () => (
+    <View style={{padding: 10, backgroundColor: THEME.cardPill, borderRadius: 20,}} >
+      <Text style={{margin: 'auto', fontSize: 20, color: THEME.white, fontWeight: '900'}} >Next</Text>
+    </View>
+    );
 
   const _onDone = async () => {
     try {
@@ -88,7 +98,7 @@ export default function componentName() {
     } catch (error) {
       console.error("Error saving onboarding status:", error);
     }
-    router.push('/home');
+    router.push('/PaywallOnBoard');
     console.log('Onboarding finished');
   };
 
@@ -99,8 +109,12 @@ export default function componentName() {
   return (
     <AppIntroSlider
       data={slides}
+      bottomButton={true}
+      dotClickEnabled={true}
       renderItem={_renderItem}
       onDone={_onDone}
+      renderDoneButton={renderDoneButton}
+      renderNextButton={renderNextButton}
     />
   );
 }

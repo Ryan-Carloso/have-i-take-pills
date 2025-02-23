@@ -17,7 +17,7 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   return (
     <PillProvider> 
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
+      <StatusBar barStyle="dark-content" backgroundColor="#000" />
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -55,13 +55,22 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <TabBarIcon name="plus" color={color} />,
           }}
         />
-                      <Tabs.Screen
+        <Tabs.Screen
         name="Paywall"
         options={{
           title: "Premium User",
           tabBarIcon: ({ color }) => <MaterialIcons name="attach-money" size={24} color={color} />,
           //tabBarStyle: { display: 'none' }, // Oculta as abas
           //href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="PaywallOnBoard"
+        options={{
+          title: "Premium User",
+          tabBarIcon: ({ color }) => <MaterialIcons name="attach-money" size={24} color={color} />,
+          tabBarStyle: { display: 'none' }, // Oculta as abas
+          href: null,
         }}
       />
         <Tabs.Screen
