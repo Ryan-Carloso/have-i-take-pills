@@ -261,15 +261,6 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
     </View>
   );
 
-  if (loading && !availableProducts.length) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={THEME.primary} />
-        <Text style={styles.loadingText}>Loading available plans...</Text>
-      </View>
-    );
-  }
-
   if (error) {
     return (
       <View style={styles.errorContainer}>
@@ -359,7 +350,7 @@ const styles = StyleSheet.create({
     backgroundColor: THEME.primary,
   },
   subscriptionHeader: {
-    backgroundColor: THEME.accent,
+    backgroundColor: THEME.success,
   },
   bestValueTag: {
     position: 'absolute',
@@ -439,7 +430,7 @@ const styles = StyleSheet.create({
     backgroundColor: THEME.primary,
   },
   subscriptionButton: {
-    backgroundColor: THEME.accent,
+    backgroundColor: THEME.success,
   },
   purchasedButton: {
     backgroundColor: THEME.success,
