@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Animated,
+  AsyncStorage,
 } from "react-native";
 import {
   GestureHandlerRootView,
@@ -20,7 +21,6 @@ interface Pill {
   time: string;
   frequency: number;
   taken: boolean;
-  lastTakenDate: string;
 }
 
 interface PillItemProps {
@@ -28,34 +28,38 @@ interface PillItemProps {
 }
 
 export default function PillItem({ pill }: PillItemProps) {
-  const { togglePillTaken, deletePill, updatePill } = usePills();
+  const { togglePillTaken, deletePill } = usePills();
   const translateX = useRef(new Animated.Value(0)).current;
   const [isDeleteVisible, setIsDeleteVisible] = useState(false);
+  const [lastTakenTime, setLastTakenTime] = useState<number | null>(null);
+  const [canPress, setCanPress] = useState(true);
 
-  const checkAndResetPillStatus = () => {
-    const currentDate = new Date();
-    const lastTakenDate = new Date(pill.lastTakenDate);
-    
-    // Reset hours to midnight for date comparison
-    currentDate.setHours(0, 0, 0, 0);
-    lastTakenDate.setHours(0, 0, 0, 0);
-
-    // If the dates are different and pill is marked as taken, reset it
-    if (currentDate.getTime() !== lastTakenDate.getTime() && pill.taken) {
-      updatePill({
-        ...pill,
-        taken: false,
-      });
+  // Function to handle pill press
+  const handlePress = async () => {
+    const currentTime = Date.now();
+    if (lastTakenTime) {
+      const timeDifference = currentTime - lastTakenTime;
+      // Check if 24 hours have passed (24 hours = 86400000 ms)
+      if (timeDifference < 43200000) {
+        // Don't allow to take the pill again if 24 hours haven't passed
+        alert("You can only take this pill once every 24 hours.");
+        return;
+      }
     }
-  };
 
-  useEffect(() => {
-    checkAndResetPillStatus();
+    // Update the last taken time
+    setLastTakenTime(currentTime);
+    setCanPress(false);
     
-    // Check status every minute
-    const intervalId = setInterval(checkAndResetPillStatus, 60000);
-    return () => clearInterval(intervalId);
-  }, [pill]);
+    // Simulate toggling the pill taken status
+    togglePillTaken(pill.id);
+    console.log(new Date().toString());
+
+    // Re-enable the button after 12 hours
+    setTimeout(() => {
+      setCanPress(true);
+    }, 43200000); // Re-enable after 12 hours
+  };
 
   const onGestureEvent = Animated.event<PanGestureHandlerGestureEvent>(
     [{ nativeEvent: { translationX: translateX } }],
@@ -64,7 +68,9 @@ export default function PillItem({ pill }: PillItemProps) {
 
   const onHandlerStateChange = (event: PanGestureHandlerGestureEvent) => {
     if (event.nativeEvent.oldState === 4) {
+      console.log("Gesture ended", event.nativeEvent.translationX);
       if (event.nativeEvent.translationX < -50) {
+        // If swiped more than 50 pixels to the left, show delete button
         setIsDeleteVisible(true);
         Animated.timing(translateX, {
           toValue: -10,
@@ -72,6 +78,7 @@ export default function PillItem({ pill }: PillItemProps) {
           useNativeDriver: true,
         }).start();
       } else {
+        // Otherwise, reset position and hide delete button
         setIsDeleteVisible(false);
         Animated.spring(translateX, {
           toValue: 0,
@@ -79,19 +86,6 @@ export default function PillItem({ pill }: PillItemProps) {
         }).start();
       }
     }
-  };
-
-  const handlePillTaken = () => {
-    const currentDate = new Date().toISOString();
-    
-    // First update the lastTakenDate
-    updatePill({
-      ...pill,
-      lastTakenDate: currentDate,
-    });
-    
-    // Then toggle the taken status
-    togglePillTaken(pill.id);
   };
 
   return (
@@ -108,11 +102,12 @@ export default function PillItem({ pill }: PillItemProps) {
               styles.pillContent,
               pill.taken && styles.taken,
               isDeleteVisible && { borderRadius: 0 },
+              !canPress && styles.disabledButton // Add a style for the disabled button
             ]}
-            onPress={handlePillTaken}
-            activeOpacity={0.7}
+            onPress={handlePress} // Use the handlePress function
+            disabled={!canPress} // Disable the button if 24 hours haven't passed
           >
-            {pill.taken ? (
+            {pill.taken && !canPress ? (
               <View>
                 <Text style={styles.name}>{pill.name}</Text>
                 <Text style={styles.takenText}>
@@ -123,7 +118,7 @@ export default function PillItem({ pill }: PillItemProps) {
               <View>
                 <Text style={styles.name}>{pill.name}</Text>
                 <Text style={styles.details}>
-                  Next dose: {pill.time}
+                  Every {pill.frequency} at {pill.time}
                 </Text>
               </View>
             )}
@@ -165,6 +160,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+  },
+  disabledButton: {
   },
   taken: {
     backgroundColor: THEME.accent,
