@@ -22,6 +22,7 @@ import {
   Product,
 } from "react-native-iap";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { THEME } from '@/components/Theme';
 
 const { width } = Dimensions.get('window');
 
@@ -182,7 +183,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
 
   const renderFeature = (feature: string): JSX.Element => (
     <View key={feature} style={styles.featureItem}>
-      <MaterialCommunityIcons name="check-circle" size={20} color="#4CAF50" />
+      <MaterialCommunityIcons name="check-circle" size={20} color={THEME.success} />
       <Text style={styles.featureText}>{feature}</Text>
     </View>
   );
@@ -195,7 +196,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
       ]}>
         {product.productType === 'lifetime' && (
           <View style={styles.bestValueTag}>
-            <MaterialCommunityIcons name="star" size={16} color="#1a237e" />
+            <MaterialCommunityIcons name="star" size={16} color={THEME.primary} />
             <Text style={styles.bestValueText}>BEST VALUE</Text>
           </View>
         )}
@@ -203,17 +204,17 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
           {product.productType === 'lifetime' ? 'Lifetime Access' : 'Monthly Plan'}
         </Text>
         <Text style={styles.planPrice}>{product.localizedPrice}</Text>
-        {product.productType === 'subscription' && (
-          <Text style={styles.billingCycle}>Billed monthly</Text>
-        )}
       </View>
+      {product.productType === 'subscription' && (
+        <Text style={styles.billingCycle}>Billed monthly</Text>
+      )}
 
       <View style={styles.cardContent}>
         {features.map(renderFeature)}
 
         {product.productType === 'lifetime' && (
           <View style={styles.launchDealContainer}>
-            <MaterialCommunityIcons name="tag" size={24} color="#F57F17" />
+            <MaterialCommunityIcons name="tag" size={24} color={THEME.warning} />
             <Text style={styles.launchDealText}>
               Launch deal! Lifetime premium FREE—ends March 15!
             </Text>
@@ -230,7 +231,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
           disabled={loading || purchasedProducts.includes(product.productId)}
         >
           {loading ? (
-            <ActivityIndicator color="white" />
+            <ActivityIndicator color={THEME.white} />
           ) : (
             <>
               <Text style={styles.buttonText}>
@@ -247,7 +248,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
                   ? "lightning-bolt"
                   : "clock-outline"} 
                 size={20} 
-                color="white" 
+                color={THEME.white} 
                 style={styles.buttonIcon}
               />
             </>
@@ -260,7 +261,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
   if (loading && !availableProducts.length) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0071bc" />
+        <ActivityIndicator size="large" color={THEME.primary} />
         <Text style={styles.loadingText}>Loading available plans...</Text>
       </View>
     );
@@ -269,7 +270,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <MaterialCommunityIcons name="alert-circle" size={48} color="#d32f2f" />
+        <MaterialCommunityIcons name="alert-circle" size={48} color={THEME.error} />
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity
           style={styles.retryButton}
@@ -314,30 +315,30 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f6fa',
+    backgroundColor: THEME.background,
   },
   scrollContainer: {
     padding: 16,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 8,
   },
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#1a237e',
+    color: THEME.primary,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 3,
   },
   subtitle: {
     fontSize: 16,
-    color: '#546e7a',
+    color: THEME.textSecondary,
     textAlign: 'center',
     marginHorizontal: 24,
     lineHeight: 22,
   },
   subscriptionCard: {
-    backgroundColor: 'white',
+    backgroundColor: THEME.surface,
     borderRadius: 16,
     marginBottom: 24,
     shadowColor: '#000',
@@ -348,20 +349,20 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardHeader: {
-    padding: 24,
+    padding: 4,
     alignItems: 'center',
   },
   lifetimeHeader: {
-    backgroundColor: '#1a237e',
+    backgroundColor: THEME.primary,
   },
   subscriptionHeader: {
-    backgroundColor: '#006064',
+    backgroundColor: THEME.accent,
   },
   bestValueTag: {
     position: 'absolute',
-    top: 12,
+    top: 15,
     right: -30,
-    backgroundColor: '#FFD700',
+    backgroundColor: THEME.cardPill,
     paddingHorizontal: 12,
     paddingVertical: 4,
     transform: [{ rotate: '45deg' }],
@@ -371,26 +372,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bestValueText: {
-    color: '#1a237e',
-    fontSize: 12,
+    color: THEME.primary,
+    fontSize: 10,
     fontWeight: '800',
     marginLeft: 4,
   },
   planType: {
-    color: 'white',
-    fontSize: 20,
+    color: THEME.white,
+    fontSize: 16,
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: 2,
+    marginTop: 4,
   },
   planPrice: {
-    color: 'white',
-    fontSize: 32,
+    color: THEME.white,
+    fontSize: 28,
     fontWeight: '800',
     marginBottom: 4,
   },
   billingCycle: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: THEME.text,
     fontSize: 14,
+    margin: 'auto',
+    marginTop: 8
   },
   cardContent: {
     padding: 24,
@@ -398,12 +402,12 @@ const styles = StyleSheet.create({
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 6,
   },
   featureText: {
     marginLeft: 12,
     fontSize: 16,
-    color: '#37474f',
+    color: THEME.text,
   },
   launchDealContainer: {
     flexDirection: 'row',
@@ -415,7 +419,7 @@ const styles = StyleSheet.create({
   },
   launchDealText: {
     marginLeft: 8,
-    color: '#F57F17',
+    color: THEME.warning,
     fontSize: 14,
     fontWeight: '600',
     flex: 1,
@@ -424,21 +428,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    padding: 12,
     borderRadius: 12,
     marginTop: 8,
   },
   lifetimeButton: {
-    backgroundColor: '#1a237e',
+    backgroundColor: THEME.primary,
   },
   subscriptionButton: {
-    backgroundColor: '#006064',
+    backgroundColor: THEME.accent,
   },
   purchasedButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: THEME.success,
   },
   buttonText: {
-    color: 'white',
+    color: THEME.white,
     fontSize: 18,
     fontWeight: '700',
     marginRight: 8,
@@ -450,41 +454,41 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f6fa',
+    backgroundColor: THEME.background,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#546e7a',
+    color: THEME.textSecondary,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: '#f5f6fa',
+    backgroundColor: THEME.background,
   },
   errorText: {
     fontSize: 16,
-    color: '#d32f2f',
+    color: THEME.error,
     textAlign: 'center',
     marginBottom: 16,
     marginTop: 12,
   },
   retryButton: {
-    backgroundColor: '#1a237e',
+    backgroundColor: THEME.primary,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: 'white',
+    color: THEME.white,
     fontSize: 16,
     fontWeight: '600',
   },
   noProductsText: {
     fontSize: 16,
-    color: '#546e7a', 
+    color: THEME.textSecondary,
     textAlign: 'center',
     marginTop: 24,
   },
