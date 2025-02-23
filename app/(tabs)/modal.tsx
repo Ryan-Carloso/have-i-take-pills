@@ -65,10 +65,11 @@ export default function AddPillModal(): JSX.Element {
         const newPill: Pill = {
           id: Date.now().toString(),
           name,
-          time: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          time: time.toLocaleString([], { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
           taken: false,
           notificationId,
         }
+        
 
         addPill(newPill)
         router.back()

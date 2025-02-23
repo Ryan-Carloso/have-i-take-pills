@@ -35,6 +35,7 @@ export default function PillItem({ pill }: PillItemProps) {
   // Reset pill taken status if it's a new day
   useEffect(() => {
     const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+    console.log("Data completa:", pill.time); // Log the complete time information
     if (pill.lastTakenDate !== currentDate) {
       // Reset taken status for the new day
       pill.taken = false;
@@ -90,15 +91,14 @@ export default function PillItem({ pill }: PillItemProps) {
               <View>
                 <Text style={styles.name}>{pill.name}</Text>
                 <Text style={styles.takenText}>
-                  Has already been taken today
-                  Every {pill.frequency} at {pill.time}
+                Has already been taken today
                 </Text>
               </View>
             ) : (
               <View>
                 <Text style={styles.name}>{pill.name}</Text>
                 <Text style={styles.details}>
-                  Every {pill.frequency} at {pill.time}
+                  Every day at {pill.time.substring(11, 18)} {/* Display only HH:mm */}
                 </Text>
               </View>
             )}
