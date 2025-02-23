@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Linking, StyleSheet, SafeAreaView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Linking,
+  StyleSheet,
+  SafeAreaView,
+} from "react-native";
 import * as StoreReview from "expo-store-review";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { THEME } from '@/components/Theme';
+import { THEME } from "@/components/Theme";
 
 export default function OnboardingCompleteScreen() {
   const router = useRouter();
   const [showHomeButton, setShowHomeButton] = useState(false);
   const [reviewRequested, setReviewRequested] = useState(false);
 
-  const AppReviewURL = '';
+  const AppReviewURL = "";
   // TODO: Update with the actual App Store / Play Store URL when available
 
   const handleReviewRequest = async () => {
@@ -33,7 +40,9 @@ export default function OnboardingCompleteScreen() {
 
   const openAppStoreReview = () => {
     setTimeout(() => {
-      Linking.openURL(AppReviewURL).catch((err) => console.error("Error opening App Store page:", err));
+      Linking.openURL(AppReviewURL).catch((err) =>
+        console.error("Error opening App Store page:", err)
+      );
     }, 1000);
   };
 
@@ -51,9 +60,10 @@ export default function OnboardingCompleteScreen() {
         <View style={styles.iconContainer}>
           <Ionicons name="star" size={60} color={THEME.cardPill} />
         </View>
-        <Text style={styles.title}>Feedback</Text>
+        <Text style={styles.title}>We Value Your Feedback!</Text>
         <Text style={styles.description}>
-          Your opinion matters! Please take a moment to rate our app and share your thoughts.
+          Your review helps us improve and grow. Please take a moment to rate
+          our app—it means a lot to us!
         </Text>
 
         {showHomeButton && (

@@ -187,10 +187,10 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: "#FFA000",
+    backgroundColor: THEME.background,
   },
   statusTaken: {
-    backgroundColor: THEME.accent,
+    backgroundColor: THEME.white,
   },
   deleteButton: {
     backgroundColor: "#ff4444",

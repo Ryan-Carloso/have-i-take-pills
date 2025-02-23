@@ -73,7 +73,7 @@ export default function AddPillModal(): JSX.Element {
         
 
         addPill(newPill)
-        router.back()
+        router.push('/home')
       } catch (error) {
         console.error("Error adding pill:", error)
       }
@@ -136,7 +136,7 @@ export default function AddPillModal(): JSX.Element {
             </Button>
             <Button
               mode="outlined"
-              onPress={() => router.back()}
+              onPress={() => router.push('/home')}
               style={styles.cancelButton}
               contentStyle={styles.buttonContent}
               labelStyle={[styles.buttonLabel, styles.cancelButtonLabel]}

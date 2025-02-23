@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 15,
     right: -30,
-    backgroundColor: THEME.cardPill,
+    backgroundColor: THEME.Yellow,
     paddingHorizontal: 12,
     paddingVertical: 4,
     transform: [{ rotate: '45deg' }],
