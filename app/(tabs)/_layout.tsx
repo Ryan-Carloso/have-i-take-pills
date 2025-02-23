@@ -20,7 +20,7 @@ export default function TabLayout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            marginBottom: -30, // Ajuste conforme necessário
+            marginBottom: 0, // Ajuste conforme necessário
             backgroundColor: "white", // Ajuste a cor conforme o design
           },
         }}
