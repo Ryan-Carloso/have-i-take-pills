@@ -23,6 +23,7 @@ import {
 } from "react-native-iap";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { THEME } from '@/components/Theme';
+import { router } from "expo-router";
 
 const { width } = Dimensions.get('window');
 
@@ -173,9 +174,11 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
       }
 
       Alert.alert("Success", "Thank you for your purchase!");
+      router.push('/home')
       setPurchasedProducts([...purchasedProducts, product.productId]);
     } catch (error) {
       Alert.alert("Purchase Failed", `Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      router.push('/home')
     } finally {
       setLoading(false);
     }
