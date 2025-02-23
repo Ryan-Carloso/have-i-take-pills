@@ -26,6 +26,7 @@
     "expo-router": "~4.0.9",
     "expo-splash-screen": "~0.29.13",
     "expo-status-bar": "~2.0.0",
+    "expo-store-review": "^8.0.1",
     "expo-system-ui": "~4.0.4",
     "expo-web-browser": "~14.0.1",
     "react": "18.3.1",

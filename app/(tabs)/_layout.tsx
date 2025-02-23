@@ -33,7 +33,7 @@ export default function TabLayout() {
         }}
       />
         <Tabs.Screen
-        name="Paywall"
+        name="review"
         options={{
           //tabBarStyle: { display: 'none' }, // Oculta as abas
           //href: null,
@@ -46,7 +46,6 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           }}
         />
-
         <Tabs.Screen
           name="modal"
           options={{

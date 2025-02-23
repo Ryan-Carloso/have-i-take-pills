@@ -9,7 +9,7 @@ import { usePills } from "../../contexts/PillContext"
 import { requestNotificationPermissions, schedulePillNotification } from "../../utils/notificationUtils"
 import * as Notifications from "expo-notifications"
 import { THEME } from "@/components/Theme"
-import InsightoPage from "@/components/insigh.to/insigh.toPage"
+import InsightoPage from "../../components/insigh.to/insigh.toPage"
 
 interface Pill {
   id: string
