@@ -22,7 +22,9 @@ export default function EmptyState() {
       >
         <Text style={styles.emptyStateButtonText}>Add Your First Pill</Text>
       </Pressable>
-      <InsightoPage/>
+      <View style={{    position: 'absolute',bottom: 30,}}>
+      <InsightoPage />
+      </View>
     </View>
   );
 }

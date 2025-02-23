@@ -9,6 +9,7 @@ import { usePills } from "../../contexts/PillContext"
 import { requestNotificationPermissions, schedulePillNotification } from "../../utils/notificationUtils"
 import * as Notifications from "expo-notifications"
 import { THEME } from "@/components/Theme"
+import InsightoPage from "@/components/insigh.to/insigh.toPage"
 
 interface Pill {
   id: string
@@ -148,6 +149,10 @@ export default function AddPillModal(): JSX.Element {
           Never forget your daily supplements or medications again! This app is your personal reminder to stay healthy
           and consistent.
         </Text>
+        
+        <View style={{maxWidth: '50%', margin: 'auto', marginTop: 20,}} >
+        <InsightoPage/>
+        </View>
       </ScrollView>
 
       <Modal visible={showTimePicker} transparent={true} animationType="slide">
@@ -178,6 +183,7 @@ export default function AddPillModal(): JSX.Element {
           </View>
         </View>
       </Modal>
+      
     </SafeAreaView>
   )
 }

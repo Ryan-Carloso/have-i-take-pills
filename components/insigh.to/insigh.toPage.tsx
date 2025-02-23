@@ -26,8 +26,7 @@ const InsightoPage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    position: 'absolute',
-    bottom: 30,
+
   },
   button: {
     backgroundColor: THEME.primary,
