@@ -18,12 +18,35 @@ import {
   useIAP,
   getProducts,
   endConnection,
+  Product,
+  Subscription,
 } from "react-native-iap";
 
 const { width } = Dimensions.get('window');
 
+interface PlatformSkus {
+  subscription: string[];
+  nonConsumable: string[];
+}
+
+interface ProductSkus {
+  ios: PlatformSkus;
+  android: PlatformSkus;
+}
+
+// Define product types
+type ProductType = 'subscription' | 'lifetime';
+
+interface ExtendedProduct extends Product {
+  productType: ProductType;
+}
+
+interface SubscriptionsProps {
+  navigation: any; // Replace with your navigation type
+}
+
 // Define both subscription and non-consumable SKUs
-const productSkus = Platform.select({
+const productSkus: ProductSkus = {
   ios: {
     subscription: ["Monthly_DailyDose"],
     nonConsumable: ["LifeTime_DailyDose"]
@@ -32,21 +55,21 @@ const productSkus = Platform.select({
     subscription: ["monthly_subscription"],
     nonConsumable: ["lifetime_access"]
   }
-});
+};
 
-export const Subscriptions = ({ navigation }) => {
+export const Subscriptions: React.FC<SubscriptionsProps> = ({ navigation }) => {
   const { connected } = useIAP();
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [connectionEstablished, setConnectionEstablished] = useState(false);
-  const [availableProducts, setAvailableProducts] = useState([]);
-  const [purchasedProducts, setPurchasedProducts] = useState([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [connectionEstablished, setConnectionEstablished] = useState<boolean>(false);
+  const [availableProducts, setAvailableProducts] = useState<ExtendedProduct[]>([]);
+  const [purchasedProducts, setPurchasedProducts] = useState<string[]>([]);
 
   useEffect(() => {
-    let isMounted = true;
+    let isMounted: boolean = true;
 
-    const setupIAP = async () => {
+    const setupIAP = async (): Promise<void> => {
       try {
         console.log("Starting IAP setup...");
         await endConnection();
@@ -59,7 +82,7 @@ export const Subscriptions = ({ navigation }) => {
       } catch (error) {
         console.error("IAP setup failed:", error);
         if (isMounted) {
-          setError(`IAP initialization failed: ${error.message || 'Unknown error'}`);
+          setError(`IAP initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
           Alert.alert(
             "Setup Error",
             "Failed to initialize in-app purchases. Please try again later."
@@ -76,7 +99,7 @@ export const Subscriptions = ({ navigation }) => {
     };
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (): Promise<void> => {
     if (!connectionEstablished) {
       console.log("Connection not established yet");
       return;
@@ -86,10 +109,10 @@ export const Subscriptions = ({ navigation }) => {
       console.log("Fetching products...");
       setLoading(true);
 
-      // Fetch both subscription and non-consumable products
+      const platform = Platform.OS as keyof ProductSkus;
       const allSkus = [
-        ...productSkus.subscription,
-        ...productSkus.nonConsumable
+        ...productSkus[platform].subscription,
+        ...productSkus[platform].nonConsumable
       ];
 
       const products = await getProducts({ skus: allSkus });
@@ -100,9 +123,9 @@ export const Subscriptions = ({ navigation }) => {
       }
 
       // Add product type information
-      const productsWithType = products.map(product => ({
+      const productsWithType: ExtendedProduct[] = products.map(product => ({
         ...product,
-        productType: productSkus.subscription.includes(product.productId) 
+        productType: productSkus[platform].subscription.includes(product.productId) 
           ? 'subscription' 
           : 'lifetime'
       }));
@@ -110,7 +133,7 @@ export const Subscriptions = ({ navigation }) => {
       setAvailableProducts(productsWithType);
     } catch (error) {
       console.error("Product fetch error:", error);
-      setError(`Failed to load products: ${error.message || 'Unknown error'}`);
+      setError(`Failed to load products: ${error instanceof Error ? error.message : 'Unknown error'}`);
       Alert.alert(
         "Loading Error",
         "Unable to load products. Please check your internet connection and try again."
@@ -126,7 +149,7 @@ export const Subscriptions = ({ navigation }) => {
     }
   }, [connectionEstablished, connected]);
 
-  const handlePurchase = async (product) => {
+  const handlePurchase = async (product: ExtendedProduct): Promise<void> => {
     if (purchasedProducts.includes(product.productId)) {
       Alert.alert("Already Purchased", 
         product.productType === 'subscription' 
@@ -156,13 +179,13 @@ export const Subscriptions = ({ navigation }) => {
       setPurchasedProducts([...purchasedProducts, product.productId]);
     } catch (error) {
       console.error("Purchase error:", error);
-      Alert.alert("Purchase Failed", `Error: ${error.message}`);
+      Alert.alert("Purchase Failed", `Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const renderProductCard = (product) => (
+  const renderProductCard = (product: ExtendedProduct): JSX.Element => (
     <View key={product.productId} style={styles.subscriptionCard}>
       <Text style={styles.subscriptionTitle}>
         {product.title}
@@ -200,7 +223,7 @@ export const Subscriptions = ({ navigation }) => {
     </View>
   );
 
-  const renderContent = () => {
+  const renderContent = (): JSX.Element => {
     if (loading) {
       return (
         <View style={styles.centerContainer}>
