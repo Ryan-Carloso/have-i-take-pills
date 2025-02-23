@@ -1,93 +1,71 @@
-// @ts-ignore
 import React from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { ExternalPathString, router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
-import { usePills } from '../../contexts/PillContext';
-import PillItem from '../../components/pillitem';
-import Header from '@/components/Header';
-import EmptyState from '../../components/EmptyState';
-import { THEME } from '@/components/Theme';
+import { View, Text, StyleSheet } from 'react-native';
+import AppIntroSlider from 'react-native-app-intro-slider';
+import { useRouter } from 'expo-router';
 
-export default function HomeScreen() {
-  const { pills, loadPills } = usePills();
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadPills();
-    }, [loadPills])
-  );
-
-
-  return (
-    <View style={styles.container}>
-      
-      <Header/>
-
-      {pills.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <FlatList
-          data={pills}
-          renderItem={({ item }) => <PillItem pill={item} />}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-
-<TouchableOpacity
-  onPress={() => router.push("/modal" as unknown as ExternalPathString)}
-  style={styles.fab}
-  activeOpacity={0.9}
->
-  <Ionicons name="add" size={24} color="white" />
-</TouchableOpacity>
-
-
-    </View>
-  );
-}
+const slides = [
+  {
+    key: 1,
+    title: 'Welcome!',
+    text: 'This is the first slide.',
+    backgroundColor: '#59b2ab',
+  },
+  {
+    key: 2,
+    title: 'Second Slide',
+    text: 'This is the second slide.',
+    backgroundColor: '#febe29',
+  },
+  {
+    key: 3,
+    title: 'Last Slide',
+    text: 'This is the last slide.',
+    backgroundColor: '#22bcb5',
+  },
+];
 
 const styles = StyleSheet.create({
-  container: {
+  slide: {
     flex: 1,
-    backgroundColor: THEME.background,
-  },
-  header: {
-    backgroundColor: THEME.primary,
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    borderBottomRightRadius: 24,
-    borderBottomLeftRadius: 24,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: 'white',
-    textAlign: 'center',
-  },
-  listContent: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
-    backgroundColor: THEME.primary,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: THEME.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+  },
+  image: {
+    width: 300,
+    height: 300,
+  },
+  text: {
+    color: 'white',
+    fontSize: 20,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  title: {
+    fontSize: 28,
+    color: 'white',
+    marginBottom: 10,
   },
 });
+
+export default function componentName() {
+    const router = useRouter();
+  const _renderItem = ({ item }) => (
+    <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
+      <Text style={styles.title}>{item.title}</Text>
+      <Text style={styles.text}>{item.text}</Text>
+    </View>
+  );
+
+  const _onDone = () => {
+    router.push('/home')
+    console.log('Onboarding finished');
+  };
+
+  return (
+    <AppIntroSlider
+      data={slides}
+      renderItem={_renderItem}
+      onDone={_onDone}
+    />
+  );
+}
