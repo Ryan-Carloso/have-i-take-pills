@@ -3,6 +3,8 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Tabs } from "expo-router";
 import { PillProvider } from "../../contexts/PillContext";
 import { StatusBar } from "react-native";
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
 
 
 function TabBarIcon(props: {
@@ -33,10 +35,10 @@ export default function TabLayout() {
         }}
       />
         <Tabs.Screen
-        name="review"
+        name="reviewPage"
         options={{
-          //tabBarStyle: { display: 'none' }, // Oculta as abas
-          //href: null,
+          tabBarStyle: { display: 'none' }, // Oculta as abas
+          href: null,
         }}
       />
         <Tabs.Screen
@@ -53,6 +55,15 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <TabBarIcon name="plus" color={color} />,
           }}
         />
+                      <Tabs.Screen
+        name="Paywall"
+        options={{
+          title: "Premium User",
+          tabBarIcon: ({ color }) => <MaterialIcons name="attach-money" size={24} color={color} />,
+          //tabBarStyle: { display: 'none' }, // Oculta as abas
+          //href: null,
+        }}
+      />
         <Tabs.Screen
           name="about"
           options={{
