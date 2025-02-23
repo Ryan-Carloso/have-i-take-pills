@@ -31,11 +31,6 @@ const subscriptionSkus = Platform.select({
 export const Subscriptions = ({ navigation }) => {
   const {
     connected,
-    subscriptions,
-    getSubscriptions,
-    currentPurchase,
-    finishTransaction,
-    getPurchaseHistory,
   } = useIAP();
 
   const [loading, setLoading] = useState(false);
