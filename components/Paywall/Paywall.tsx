@@ -174,11 +174,11 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
       }
 
       Alert.alert("Success", "Thank you for your purchase!");
-      router.push('/home')
+      router.push('/reviewPage')
       setPurchasedProducts([...purchasedProducts, product.productId]);
     } catch (error) {
       Alert.alert("Purchase Failed", `Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      router.push('/home')
+      router.push('/reviewPage')
     } finally {
       setLoading(false);
     }
