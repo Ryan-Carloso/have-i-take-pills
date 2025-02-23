@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import { THEME } from "./Theme";
 import { ExternalPathString, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import InsightoPage from "./insigh.to/insigh.toPage";
 
 export default function EmptyState() {
   return (
@@ -21,6 +22,7 @@ export default function EmptyState() {
       >
         <Text style={styles.emptyStateButtonText}>Add Your First Pill</Text>
       </Pressable>
+      <InsightoPage/>
     </View>
   );
 }

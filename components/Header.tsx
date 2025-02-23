@@ -5,7 +5,7 @@ import { THEME } from './Theme';
 export default function Header() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>DailyDose</Text>
+      <Text style={styles.title}>DailyDose 💊</Text>
     </View>
   );
 }
@@ -13,7 +13,7 @@ export default function Header() {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    paddingVertical: 20,
+    paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: THEME.primary,

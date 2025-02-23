@@ -23,9 +23,6 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#000" />
-
-      <StatusBar style="light" />
       
       <Header/>
 

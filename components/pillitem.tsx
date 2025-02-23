@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ interface Pill {
   time: string;
   frequency: number;
   taken: boolean;
+  lastTakenDate: string; // Add last taken date field
 }
 
 interface PillItemProps {
@@ -30,6 +31,16 @@ export default function PillItem({ pill }: PillItemProps) {
   const { togglePillTaken, deletePill } = usePills();
   const translateX = useRef(new Animated.Value(0)).current;
   const [isDeleteVisible, setIsDeleteVisible] = useState(false);
+
+  // Reset pill taken status if it's a new day
+  useEffect(() => {
+    const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+    if (pill.lastTakenDate !== currentDate) {
+      // Reset taken status for the new day
+      pill.taken = false;
+      pill.lastTakenDate = currentDate;
+    }
+  }, [pill]);
 
   const onGestureEvent = Animated.event<PanGestureHandlerGestureEvent>(
     [{ nativeEvent: { translationX: translateX } }],
@@ -80,6 +91,7 @@ export default function PillItem({ pill }: PillItemProps) {
                 <Text style={styles.name}>{pill.name}</Text>
                 <Text style={styles.takenText}>
                   Has already been taken today
+                  Every {pill.frequency} at {pill.time}
                 </Text>
               </View>
             ) : (
