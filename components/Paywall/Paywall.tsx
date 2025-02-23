@@ -14,6 +14,7 @@ import {
 import {
   initConnection,
   requestSubscription,
+  requestPurchase,
   useIAP,
   getProducts,
   endConnection,
@@ -21,24 +22,26 @@ import {
 
 const { width } = Dimensions.get('window');
 
-const ITUNES_SHARED_SECRET = "c3b2572aaae84d9c8ca0b06b782db96e";
-
-const subscriptionSkus = Platform.select({
-  ios: ["LifeTime_DailyDose"], 
-  android: ["androidTestSku"],
+// Define both subscription and non-consumable SKUs
+const productSkus = Platform.select({
+  ios: {
+    subscription: ["Monthly_DailyDose"],
+    nonConsumable: ["LifeTime_DailyDose"]
+  },
+  android: {
+    subscription: ["monthly_subscription"],
+    nonConsumable: ["lifetime_access"]
+  }
 });
 
 export const Subscriptions = ({ navigation }) => {
-  const {
-    connected,
-
-  } = useIAP();
+  const { connected } = useIAP();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [connectionEstablished, setConnectionEstablished] = useState(false);
-  const [availableSubscriptions, setAvailableSubscriptions] = useState([]);
-  const [subscribedProducts, setSubscribedProducts] = useState([]);
+  const [availableProducts, setAvailableProducts] = useState([]);
+  const [purchasedProducts, setPurchasedProducts] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -46,13 +49,9 @@ export const Subscriptions = ({ navigation }) => {
     const setupIAP = async () => {
       try {
         console.log("Starting IAP setup...");
-
         await endConnection();
-        console.log("Ended previous IAP connection");
-
         const result = await initConnection();
-        console.log("IAP Connection initialized:", result);
-
+        
         if (isMounted) {
           setConnectionEstablished(true);
           console.log("IAP setup complete");
@@ -77,42 +76,44 @@ export const Subscriptions = ({ navigation }) => {
     };
   }, []);
 
-  const fetchSubscriptions = async () => {
+  const fetchProducts = async () => {
     if (!connectionEstablished) {
-      console.log("Connection not established yet, skipping subscription fetch");
+      console.log("Connection not established yet");
       return;
     }
 
     try {
-      console.log("Fetching subscription products...");
+      console.log("Fetching products...");
       setLoading(true);
 
-      const products = await getProducts({ skus: subscriptionSkus });
+      // Fetch both subscription and non-consumable products
+      const allSkus = [
+        ...productSkus.subscription,
+        ...productSkus.nonConsumable
+      ];
+
+      const products = await getProducts({ skus: allSkus });
       console.log("Available products:", products);
 
       if (!products || products.length === 0) {
-        console.log("No products found for SKUs:", subscriptionSkus);
         throw new Error("No products available for purchase");
       }
 
-      const validSubscriptions = products.filter(
-        (product) => product.type === "subs"
-      );
+      // Add product type information
+      const productsWithType = products.map(product => ({
+        ...product,
+        productType: productSkus.subscription.includes(product.productId) 
+          ? 'subscription' 
+          : 'lifetime'
+      }));
 
-      if (validSubscriptions.length === 0) {
-        throw new Error("No subscription products available");
-      }
-
-      setAvailableSubscriptions(validSubscriptions);
-      
-      // Simulating subscribed products for demonstration
-      setSubscribedProducts([validSubscriptions[0].productId]);
+      setAvailableProducts(productsWithType);
     } catch (error) {
-      console.error("Subscription fetch error:", error);
-      setError(`Failed to load subscriptions: ${error.message || 'Unknown error'}`);
+      console.error("Product fetch error:", error);
+      setError(`Failed to load products: ${error.message || 'Unknown error'}`);
       Alert.alert(
         "Loading Error",
-        "Unable to load subscription products. Please check your internet connection and try again."
+        "Unable to load products. Please check your internet connection and try again."
       );
     } finally {
       setLoading(false);
@@ -121,28 +122,38 @@ export const Subscriptions = ({ navigation }) => {
 
   useEffect(() => {
     if (connectionEstablished && connected) {
-      console.log("Connection established, fetching initial data...");
-      fetchSubscriptions();
+      fetchProducts();
     }
   }, [connectionEstablished, connected]);
 
-  const handleSubscription = async (productId) => {
-    if (subscribedProducts.includes(productId)) {
-      Alert.alert("Already Subscribed", "You are already subscribed to this plan.");
+  const handlePurchase = async (product) => {
+    if (purchasedProducts.includes(product.productId)) {
+      Alert.alert("Already Purchased", 
+        product.productType === 'subscription' 
+          ? "You are already subscribed to this plan."
+          : "You already own lifetime access."
+      );
       return;
     }
 
     try {
       setLoading(true);
-      console.log("Initiating subscription purchase for:", productId);
+      console.log("Initiating purchase for:", product.productId);
 
-      await requestSubscription({
-        sku: productId,
-        andDangerouslyFinishTransactionAutomaticallyIOS: false,
-      });
+      if (product.productType === 'subscription') {
+        await requestSubscription({
+          sku: product.productId,
+          andDangerouslyFinishTransactionAutomaticallyIOS: false,
+        });
+      } else {
+        await requestPurchase({
+          sku: product.productId,
+          andDangerouslyFinishTransactionAutomaticallyIOS: false,
+        });
+      }
 
       Alert.alert("Success", "Thank you for your purchase!");
-      setSubscribedProducts([...subscribedProducts, productId]);
+      setPurchasedProducts([...purchasedProducts, product.productId]);
     } catch (error) {
       console.error("Purchase error:", error);
       Alert.alert("Purchase Failed", `Error: ${error.message}`);
@@ -151,65 +162,95 @@ export const Subscriptions = ({ navigation }) => {
     }
   };
 
-  const renderLoadingState = () => (
-    <View style={styles.centerContainer}>
-      <ActivityIndicator size="large" color="#0071bc" />
-      <Text style={styles.loadingText}>Loading subscriptions...</Text>
-    </View>
-  );
-
-  const renderError = () => (
-    <View style={styles.centerContainer}>
-      <Text style={styles.errorText}>{error}</Text>
+  const renderProductCard = (product) => (
+    <View key={product.productId} style={styles.subscriptionCard}>
+      <Text style={styles.subscriptionTitle}>
+        {product.title}
+        {product.productType === 'lifetime' && " (Lifetime)"}
+      </Text>
+      <Text style={styles.subscriptionPrice}>{product.localizedPrice}</Text>
+      <Text style={styles.subscriptionDescription}>{product.description}</Text>
+      
+      {product.productType === 'lifetime' && (
+        <Text style={styles.lifetimeNote}>
+          ★ One-time purchase, lifetime access
+        </Text>
+      )}
+      
       <TouchableOpacity
-        style={styles.retryButton}
-        onPress={() => {
-          setError(null);
-          fetchSubscriptions();
-        }}
+        style={[
+          styles.subscribeButton,
+          purchasedProducts.includes(product.productId) && styles.subscribedButton
+        ]}
+        onPress={() => handlePurchase(product)}
+        disabled={loading || purchasedProducts.includes(product.productId)}
       >
-        <Text style={styles.retryButtonText}>Retry</Text>
+        <Text style={styles.buttonText}>
+          {purchasedProducts.includes(product.productId)
+            ? product.productType === 'subscription' 
+              ? "Subscribed"
+              : "Purchased"
+            : loading
+            ? "Processing..."
+            : product.productType === 'subscription'
+            ? "Subscribe"
+            : "Buy Lifetime Access"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
 
-  const renderSubscriptions = () => (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      {availableSubscriptions && availableSubscriptions.length > 0 ? 
-        availableSubscriptions.map((subscription, index) => (
-          <View key={index} style={styles.subscriptionCard}>
-            <Text style={styles.subscriptionTitle}>{subscription.title}</Text>
-            <Text style={styles.subscriptionPrice}>{subscription.localizedPrice}</Text>
-            <Text style={styles.subscriptionDescription}>{subscription.description}</Text>
-            <TouchableOpacity
-              style={[
-                styles.subscribeButton,
-                subscribedProducts.includes(subscription.productId) && styles.subscribedButton
-              ]}
-              onPress={() => handleSubscription(subscription.productId)}
-              disabled={loading || subscribedProducts.includes(subscription.productId)}
-            >
-              <Text style={styles.buttonText}>
-                {subscribedProducts.includes(subscription.productId)
-                  ? "Subscribed"
-                  : loading
-                  ? "Processing..."
-                  : "Subscribe"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))
-      : 
-      <Text style={styles.noSubscriptionsText}>No subscriptions available</Text>
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#0071bc" />
+          <Text style={styles.loadingText}>Loading products...</Text>
+        </View>
+      );
     }
-    </ScrollView>
-  );
+
+    if (error) {
+      return (
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => {
+              setError(null);
+              fetchProducts();
+            }}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {availableProducts.length > 0 ? (
+          <>
+            {/* Show subscription products first */}
+            {availableProducts
+              .filter(product => product.productType === 'subscription')
+              .map(renderProductCard)}
+            
+            {/* Then show lifetime products */}
+            {availableProducts
+              .filter(product => product.productType === 'lifetime')
+              .map(renderProductCard)}
+          </>
+        ) : (
+          <Text style={styles.noSubscriptionsText}>No products available</Text>
+        )}
+      </ScrollView>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {loading ? renderLoadingState() :
-       error ? renderError() :
-       renderSubscriptions()}
+      {renderContent()}
     </SafeAreaView>
   );
 };
@@ -275,6 +316,12 @@ const styles = StyleSheet.create({
   subscriptionDescription: {
     fontSize: 14,
     color: '#666',
+    marginBottom: 16,
+  },
+  lifetimeNote: {
+    fontSize: 14,
+    color: '#4caf50',
+    fontWeight: 'bold',
     marginBottom: 16,
   },
   subscribeButton: {
