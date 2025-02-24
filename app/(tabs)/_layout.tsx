@@ -4,6 +4,7 @@ import { Tabs } from "expo-router";
 import { PillProvider } from "../../contexts/PillContext";
 import { StatusBar } from "react-native";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { THEME } from '@/components/Theme'
 
 
 
@@ -25,6 +26,9 @@ export default function TabLayout() {
             marginBottom: 0, // Ajuste conforme necessário
             backgroundColor: "white", // Ajuste a cor conforme o design
           },
+          tabBarActiveTintColor: THEME.primary, // Add this line to change active tab title color
+          tabBarInactiveTintColor: 'gray', // Add this line to change inactive tab title color
+
         }}
       >
       <Tabs.Screen

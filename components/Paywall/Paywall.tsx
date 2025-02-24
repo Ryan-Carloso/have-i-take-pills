@@ -1,7 +1,5 @@
-//@ts-ignore
 import React, { useEffect, useState } from "react";
 import {
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -11,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import {
   initConnection,
@@ -19,15 +18,14 @@ import {
   useIAP,
   getProducts,
   endConnection,
-  Product,
+  type Product,
 } from "react-native-iap";
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { THEME } from '@/components/Theme';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { THEME } from "@/components/Theme";
 import { router } from "expo-router";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
-// Types remain the same
 interface PlatformSkus {
   subscription: string[];
   nonConsumable: string[];
@@ -38,130 +36,70 @@ interface ProductSkus {
   android: PlatformSkus;
 }
 
-type ProductType = 'subscription' | 'lifetime';
+type ProductType = "subscription" | "lifetime";
 
 interface ExtendedProduct extends Product {
   productType: ProductType;
 }
 
-interface SubscriptionsProps {
-  navigation: any;
-}
-
 const productSkus: ProductSkus = {
   ios: {
     subscription: ["Monthly_DailyDose"],
-    nonConsumable: ["LifeTime_DailyDose"]
+    nonConsumable: ["LifeTime_DailyDose"],
   },
   android: {
     subscription: ["monthly_subscription"],
-    nonConsumable: ["lifetime_access"]
-  }
+    nonConsumable: ["lifetime_access"],
+  },
 };
 
-const features = [
-  "Unlimited pill tracking",
-  "Detailed analytics",
-  "Reminder notifications",
-  "Export health data",
-  "Priority support"
-];
-
-export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
-  // State management remains the same
+export default function Subscriptions() {
   const { connected } = useIAP();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [connectionEstablished, setConnectionEstablished] = useState<boolean>(false);
-  const [availableProducts, setAvailableProducts] = useState<ExtendedProduct[]>([]);
-  const [purchasedProducts, setPurchasedProducts] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<ExtendedProduct[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
-  // Setup and fetch functions remain the same
   useEffect(() => {
-    let isMounted: boolean = true;
-
-    const setupIAP = async (): Promise<void> => {
+    const setup = async () => {
       try {
-        await endConnection();
-        const result = await initConnection();
-        if (isMounted) {
-          setConnectionEstablished(true);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setError(`IAP initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          Alert.alert(
-            "Setup Error",
-            "Failed to initialize in-app purchases. Please try again later."
-          );
-        }
+        await initConnection();
+        const platform = Platform.OS as keyof ProductSkus;
+        const skus = [
+          ...productSkus[platform].subscription,
+          ...productSkus[platform].nonConsumable,
+        ];
+        const available = await getProducts({ skus });
+
+        const productsWithType: ExtendedProduct[] = available.map(
+          (product) => ({
+            ...product,
+            productType: productSkus[platform].subscription.includes(
+              product.productId
+            )
+              ? "subscription"
+              : "lifetime",
+          })
+        );
+
+        setProducts(productsWithType);
+      } catch (err) {
+        Alert.alert("Error", "Failed to load subscription options");
       }
     };
 
-    setupIAP();
+    if (connected) {
+      setup();
+    }
+
     return () => {
-      isMounted = false;
       endConnection();
     };
-  }, []);
+  }, [connected]);
 
-  // Fetch products function remains the same
-  const fetchProducts = async (): Promise<void> => {
-    if (!connectionEstablished) return;
-
+  const handlePurchase = async (product: ExtendedProduct) => {
     try {
       setLoading(true);
-      const platform = Platform.OS as keyof ProductSkus;
-      const allSkus = [
-        ...productSkus[platform].subscription,
-        ...productSkus[platform].nonConsumable
-      ];
-
-      const products = await getProducts({ skus: allSkus });
-
-      if (!products || products.length === 0) {
-        throw new Error("No products available for purchase");
-      }
-
-      const productsWithType: ExtendedProduct[] = products.map(product => ({
-        ...product,
-        productType: productSkus[platform].subscription.includes(product.productId) 
-          ? 'subscription' 
-          : 'lifetime'
-      }));
-
-      setAvailableProducts(productsWithType);
-    } catch (error) {
-      setError(`Failed to load products: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      Alert.alert(
-        "Loading Error",
-        "Unable to load products. Please check your internet connection and try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (connectionEstablished && connected) {
-      fetchProducts();
-    }
-  }, [connectionEstablished, connected]);
-
-  const handlePurchase = async (product: ExtendedProduct): Promise<void> => {
-    if (purchasedProducts.includes(product.productId)) {
-      Alert.alert("Already Purchased", 
-        product.productType === 'subscription' 
-          ? "You are already subscribed to this plan."
-          : "You already own lifetime access."
-      );
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      if (product.productType === 'subscription') {
+      if (product.productType === "subscription") {
         await requestSubscription({
           sku: product.productId,
           andDangerouslyFinishTransactionAutomaticallyIOS: false,
@@ -172,320 +110,241 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ }) => {
           andDangerouslyFinishTransactionAutomaticallyIOS: false,
         });
       }
-
       Alert.alert("Success", "Thank you for your purchase!");
-      router.push('/reviewPage')
-      setPurchasedProducts([...purchasedProducts, product.productId]);
-    } catch (error) {
-      Alert.alert("Purchase Failed", `Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      router.push('/Paywall')
+      router.push("/reviewPage");
+    } catch (err) {
+      router.push("/reviewPage");
     } finally {
       setLoading(false);
     }
   };
 
+  const renderPlanCard = (product: ExtendedProduct) => (
+    <TouchableOpacity
+      key={product.productId}
+      style={[
+        styles.planCard,
+        selectedPlan === product.productId && styles.selectedCard,
+      ]}
+      onPress={() => setSelectedPlan(product.productId)}
+    >
+      {product.productType === "lifetime" && (
+        <View style={styles.bestValueTag}>
+          <Text style={styles.bestValueText}>DEAL</Text>
+        </View>
+      )}
+
+      <View style={styles.planHeader}>
+        <Text style={styles.proPlan}>PRO</Text>
+        <Text style={styles.planType}>
+          {product.productType === "subscription" ? "MONTHLY" : "LIFETIME"}
+        </Text>
+      </View>
+      <Text style={styles.price}>{product.localizedPrice}</Text>
+      <Text style={styles.billingCycle}>
+        {product.productType === "subscription" ? "Billed monthly" : "Pay once"}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const features = [
+    "Unlimited pill tracking",
+    "Detailed analytics",
+    "Reminder notifications",
+    "Export health data",
+    "Priority support",
+  ];
+
   const renderFeature = (feature: string): JSX.Element => (
     <View key={feature} style={styles.featureItem}>
-      <MaterialCommunityIcons name="check-circle" size={20} color={THEME.success} />
+      <MaterialCommunityIcons
+        name="check-circle"
+        size={20}
+        color={THEME.success}
+      />
       <Text style={styles.featureText}>{feature}</Text>
     </View>
   );
 
-  const renderProductCard = (product: ExtendedProduct): JSX.Element => (
-    <View key={product.productId} style={styles.subscriptionCard}>
-      <View style={[
-        styles.cardHeader,
-        product.productType === 'lifetime' ? styles.lifetimeHeader : styles.subscriptionHeader
-      ]}>
-        {product.productType === 'lifetime' && (
-          <View style={styles.bestValueTag}>
-            <MaterialCommunityIcons name="star" size={16} color={THEME.primary} />
-            <Text style={styles.bestValueText}>BEST VALUE</Text>
-          </View>
-        )}
-        <Text style={styles.planType}>
-          {product.productType === 'lifetime' ? 'Lifetime Access' : 'Monthly Plan'}
-        </Text>
-        <Text style={styles.planPrice}>{product.localizedPrice}</Text>
-      </View>
-      {product.productType === 'subscription' && (
-        <Text style={styles.billingCycle}>Billed monthly</Text>
-      )}
-
-      <View style={styles.cardContent}>
-        {features.map(renderFeature)}
-
-        {product.productType === 'lifetime' && (
-          <View style={styles.launchDealContainer}>
-            <MaterialCommunityIcons name="tag" size={24} color={THEME.warning} />
-            <Text style={styles.launchDealText}>
-              Launch deal! Lifetime premium FREE—ends March 15!
-            </Text>
-          </View>
-        )}
-
-        <TouchableOpacity
-          style={[
-            styles.purchaseButton,
-            product.productType === 'lifetime' ? styles.lifetimeButton : styles.subscriptionButton,
-            purchasedProducts.includes(product.productId) && styles.purchasedButton
-          ]}
-          onPress={() => handlePurchase(product)}
-          disabled={loading || purchasedProducts.includes(product.productId)}
-        >
-          {loading ? (
-            <ActivityIndicator color={THEME.white} />
-          ) : (
-            <>
-              <Text style={styles.buttonText}>
-                {purchasedProducts.includes(product.productId)
-                  ? "Purchased"
-                  : product.productType === 'lifetime'
-                  ? "Get Lifetime Access"
-                  : "Start Monthly Plan"}
-              </Text>
-              <MaterialCommunityIcons 
-                name={purchasedProducts.includes(product.productId) 
-                  ? "check"
-                  : product.productType === 'lifetime'
-                  ? "lightning-bolt"
-                  : "clock-outline"} 
-                size={20} 
-                color={THEME.white} 
-                style={styles.buttonIcon}
-              />
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <MaterialCommunityIcons name="alert-circle" size={48} color={THEME.error} />
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => {
-            setError(null);
-            fetchProducts();
-          }}
-        >
-          <Text style={styles.retryButtonText}>Try Again</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.title}>Choose Your Plan</Text>
           <Text style={styles.subtitle}>
-            Unlock premium features and take control of your health journey
+            Unlock all features and take control of your health
           </Text>
         </View>
 
-        {availableProducts.length > 0 ? (
+        <View style={styles.featuresContainer}>
+          <Text style={styles.featuresTitle}>What's Included:</Text>
+          {features.map(renderFeature)}
+        </View>
+
+        <View>
+          <Text style={{ color: THEME.primary }}>
+            Launch deal! Lifetime premium FREE—ends March 15!
+          </Text>
+        </View>
+
+        {products.length > 0 && (
           <>
-            {availableProducts
-              .filter(product => product.productType === 'lifetime')
-              .map(renderProductCard)}
-            {availableProducts
-              .filter(product => product.productType === 'subscription')
-              .map(renderProductCard)}
+            <View style={styles.cardsContainer}>
+              {products.map(renderPlanCard)}
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.subscribeButton,
+                !selectedPlan && styles.disabledButton,
+              ]}
+              disabled={!selectedPlan || loading}
+              onPress={() => {
+                const selected = products.find(
+                  (p) => p.productId === selectedPlan
+                );
+                if (selected) handlePurchase(selected);
+              }}
+            >
+              {loading ? (
+                <ActivityIndicator color={THEME.white} />
+              ) : (
+                <Text style={styles.subscribeButtonText}>
+                  {selectedPlan ? "Subscribe Now" : "Select a Plan"}
+                </Text>
+              )}
+            </TouchableOpacity>
           </>
-        ) : (
-          <Text style={styles.noProductsText}>No plans available at the moment</Text>
         )}
       </ScrollView>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: THEME.background,
   },
-  scrollContainer: {
-    padding: 16,
+  scrollContent: {
+    flexGrow: 1,
+    padding: 24,
   },
   header: {
-    marginBottom: 8,
+    alignItems: "center",
+    marginBottom: 32,
   },
   title: {
     fontSize: 28,
-    fontWeight: '800',
-    color: THEME.primary,
-    textAlign: 'center',
-    marginBottom: 3,
+    fontWeight: "800",
+    color: THEME.text,
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: THEME.textSecondary,
-    textAlign: 'center',
-    marginHorizontal: 24,
-    lineHeight: 22,
+    textAlign: "center",
   },
-  subscriptionCard: {
+  featuresContainer: {
+    marginBottom: 32,
+  },
+  featuresTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: THEME.text,
+    marginBottom: 16,
+  },
+  cardsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 16,
+    marginBottom: 32,
+  },
+  planCard: {
     backgroundColor: THEME.surface,
     borderRadius: 16,
-    marginBottom: 24,
-    shadowColor: '#000',
+    padding: 24,
+    width: width * 0.42,
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "transparent",
+    elevation: 4,
+    shadowColor: THEME.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    overflow: 'hidden',
+    shadowRadius: 4,
+    overflow: "hidden",
   },
-  cardHeader: {
-    padding: 4,
-    alignItems: 'center',
+  selectedCard: {
+    borderColor: THEME.primary,
   },
-  lifetimeHeader: {
-    backgroundColor: THEME.primary,
+  planHeader: {
+    alignItems: "center",
+    marginBottom: 16,
   },
-  subscriptionHeader: {
-    backgroundColor: THEME.success,
-  },
-  bestValueTag: {
-    position: 'absolute',
-    top: 15,
-    right: -30,
-    backgroundColor: THEME.Yellow,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    transform: [{ rotate: '45deg' }],
-    width: 120,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bestValueText: {
-    color: THEME.primary,
-    fontSize: 10,
-    fontWeight: '800',
-    marginLeft: 4,
-  },
-  planType: {
-    color: THEME.white,
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 2,
-    marginTop: 4,
-  },
-  planPrice: {
-    color: THEME.white,
+  proPlan: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
+    color: THEME.primary,
     marginBottom: 4,
   },
-  billingCycle: {
-    color: THEME.text,
-    fontSize: 14,
-    margin: 'auto',
-    marginTop: 8
+  planType: {
+    fontSize: 16,
+    color: THEME.textSecondary,
+    fontWeight: "600",
   },
-  cardContent: {
-    padding: 24,
+  price: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: THEME.text,
+    marginBottom: 8,
+  },
+  billingCycle: {
+    fontSize: 14,
+    color: THEME.textSecondary,
+  },
+  bestValueText: {
+    color: THEME.white,
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  bestValueTag: {
+    position: "absolute",
+    top: 15,
+    right: -35,
+    backgroundColor: THEME.warning,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    transform: [{ rotate: "45deg" }],
+    width: 120,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "visible",
+  },
+  subscribeButton: {
+    backgroundColor: THEME.primary,
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: "center",
+    marginHorizontal: 24,
+  },
+  disabledButton: {
+    backgroundColor: THEME.textSecondary,
+    opacity: 0.7,
+  },
+  subscribeButtonText: {
+    color: THEME.white,
+    fontSize: 18,
+    fontWeight: "700",
   },
   featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
   },
   featureText: {
     marginLeft: 12,
     fontSize: 16,
     color: THEME.text,
   },
-  launchDealContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF9C4',
-    padding: 12,
-    borderRadius: 8,
-    marginVertical: 16,
-  },
-  launchDealText: {
-    marginLeft: 8,
-    color: THEME.warning,
-    fontSize: 14,
-    fontWeight: '600',
-    flex: 1,
-  },
-  purchaseButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  lifetimeButton: {
-    backgroundColor: THEME.primary,
-  },
-  subscriptionButton: {
-    backgroundColor: THEME.success,
-  },
-  purchasedButton: {
-    backgroundColor: THEME.success,
-  },
-  buttonText: {
-    color: THEME.white,
-    fontSize: 18,
-    fontWeight: '700',
-    marginRight: 8,
-  },
-  buttonIcon: {
-    marginLeft: 4,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: THEME.background,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: THEME.textSecondary,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    backgroundColor: THEME.background,
-  },
-  errorText: {
-    fontSize: 16,
-    color: THEME.error,
-    textAlign: 'center',
-    marginBottom: 16,
-    marginTop: 12,
-  },
-  retryButton: {
-    backgroundColor: THEME.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: THEME.white,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  noProductsText: {
-    fontSize: 16,
-    color: THEME.textSecondary,
-    textAlign: 'center',
-    marginTop: 24,
-  },
 });
-
-export default Subscriptions;
