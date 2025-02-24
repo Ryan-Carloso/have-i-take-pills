@@ -151,10 +151,11 @@ export default function Subscriptions() {
 
   const features = [
     "Unlimited pill tracking",
-    "Detailed analytics",
+//    "Detailed analytics",
     "Reminder notifications",
-    "Export health data",
+//    "Export health data",
     "Priority support",
+    "Help an indie dev"
   ];
 
   const renderFeature = (feature: string): JSX.Element => (
