@@ -69,28 +69,30 @@ export default function Subscriptions() {
           ...productSkus[platform].nonConsumable,
         ];
         const available = await getProducts({ skus });
-
-        const productsWithType: ExtendedProduct[] = available.map(
-          (product) => ({
-            ...product,
-            productType: productSkus[platform].subscription.includes(
-              product.productId
-            )
-              ? "subscription"
-              : "lifetime",
-          })
-        );
-
+  
+        const productsWithType: ExtendedProduct[] = available.map((product) => ({
+          ...product,
+          productType: productSkus[platform].subscription.includes(product.productId)
+            ? "subscription"
+            : "lifetime",
+        }));
+  
         setProducts(productsWithType);
+  
+        // Selecionar automaticamente o primeiro plano "lifetime"
+        const lifetimePlan = productsWithType.find(p => p.productType === "lifetime");
+        if (lifetimePlan) {
+          setSelectedPlan(lifetimePlan.productId);
+        }
       } catch (err) {
         Alert.alert("Error", "Failed to load subscription options");
       }
     };
-
+  
     if (connected) {
       setup();
     }
-
+  
     return () => {
       endConnection();
     };
@@ -247,7 +249,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   featuresContainer: {
-    marginBottom: 32,
+    marginBottom: 6,
   },
   featuresTitle: {
     fontSize: 20,
@@ -354,7 +356,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF9C4',
     padding: 12,
     borderRadius: 8,
-    marginVertical: 16,
+    marginBottom: 14,
+    marginTop: 6,
   },
   launchDealText: {
     marginLeft: 8,
