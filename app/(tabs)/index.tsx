@@ -1,151 +1,186 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
-import AppIntroSlider from 'react-native-app-intro-slider';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import AsyncStorage  from '@react-native-async-storage/async-storage'
-import {THEME} from '@/components/Theme'
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { THEME } from '@/components/Theme';
+
+const { width, height } = Dimensions.get('window');
 
 const slides = [
   {
     key: 1,
-    title: 'Dont Ever Forget to take an suplment, we help you out!!',
-    text: 'Your daily Dose',
+    title: "Don't Ever Forget to Take a Supplement",
+    text: "We help you out with your daily dose!",
     image: require('../../assets/images/icon.png'),
-    backgroundColor: THEME.surface,
   },
   {
     key: 2,
-    title: 'First you need to set up each vitamin or suplement you will take',
-    text: 'select the time you to send the notify',
+    title: "Set Up Your Vitamins and Supplements",
+    text: "Select the time to receive notifications",
     image: require('../../assets/images/modalphoto.png'),
-    backgroundColor: THEME.surface,
   },
   {
     key: 3,
-    title: 'you Will never forget again about your bills',
-    text: 'This is the last slide.',
-    backgroundColor: '#22bcb5',
+    title: "Never Forget Your Pills Again",
+    text: "Stay on top of your health routine",
+    image: null,
   },
-  
 ];
 
-const styles = StyleSheet.create({
-  slide: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+const Onboarding = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const router = useRouter();
 
-  text: {
-    color: 'black',
-    fontSize: 20,
-    textAlign: 'center',
-    paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 28,
-    color: 'black',
-    marginBottom: 10,
-  },
-  imageContainer: {
-    height: 350, 
-    aspectRatio: 9 / 16, 
-    borderRadius: 30, 
-    overflow: "hidden", // 🔥 Mantém a borda arredondada
-    backgroundColor: THEME.surface,
-    alignItems: "center", 
-    justifyContent: "center",
-  },
-  tinyLogo: {
-    height: "100%",
-    width: "100%",
-    resizeMode: "contain", // 🔥 Garante que a imagem inteira seja visível sem cortes
-  },  
-});
-
-export default function componentName() {
-    const router = useRouter();
-    const [onboardingComplete, setOnboardingComplete] = useState(false);
-
-    useEffect(() => {
-      const checkOnboarding = async () => {
-          try {
-              // Check if we are in development mode.  __DEV__ is a React Native constant.
-              if (!__DEV__) {
-                  const complete = await AsyncStorage.getItem('onboardingComplete');
-                  setOnboardingComplete(complete === 'true');
-              } else {
-                  setOnboardingComplete(false); // Always show onboarding in dev mode
-              }
-          } catch (error) {
-              console.error("Error checking onboarding status:", error);
-          }
-      };
-      checkOnboarding();
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        if (!__DEV__) {
+          const complete = await AsyncStorage.getItem('onboardingComplete');
+          setOnboardingComplete(complete === 'true');
+        } else {
+          setOnboardingComplete(false);
+        }
+      } catch (error) {
+        console.error("Error checking onboarding status:", error);
+      }
+    };
+    checkOnboarding();
   }, []);
 
-    useEffect(() => {
-        if (onboardingComplete) {
-            router.push('/home');
-        }
-    }, [onboardingComplete, router]);
+  useEffect(() => {
+    if (onboardingComplete) {
+      router.push('/home');
+    }
+  }, [onboardingComplete, router]);
 
-    const _renderItem = ({ item }) => (
-      <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
-        <Text style={styles.title}>{item.title}</Text>
-        {item.image && (
-          <View
-            style={[
-              styles.imageContainer,
-              item.backgroundColor && { backgroundColor: "white" }, // Apply background only if needed
-            ]}
-          >
-            <Image
-              source={item.image}
-              style={styles.tinyLogo}
-              resizeMode="contain" // Keeps the image inside the container
-            />
-          </View>
-        )}
-        <Text style={styles.text}>{item.text}</Text>
-      </View>
-    );
-    
-  const renderDoneButton = () => (
-    <View style={{padding: 10, backgroundColor: THEME.cardPill, borderRadius: 20,}} >
-      <Text style={{margin: 'auto', fontSize: 20, color: THEME.white, fontWeight: '900'}} >Next</Text>
-    </View>
-  );
+  const handleNext = () => {
+    if (currentSlide < slides.length - 1) {
+      setCurrentSlide(currentSlide + 1);
+    } else {
+      handleDone();
+    }
+  };
 
-  const renderNextButton = () => (
-    <View style={{padding: 10, backgroundColor: THEME.cardPill, borderRadius: 20,}} >
-      <Text style={{margin: 'auto', fontSize: 20, color: THEME.white, fontWeight: '900'}} >Next</Text>
-    </View>
-    );
-
-  const _onDone = async () => {
+  const handleDone = async () => {
     try {
       await AsyncStorage.setItem('onboardingComplete', 'true');
+      router.push('/PaywallOnBoard');
     } catch (error) {
       console.error("Error saving onboarding status:", error);
     }
-    router.push('/PaywallOnBoard');
-    console.log('Onboarding finished');
   };
 
   if (onboardingComplete) {
-    return null; // or a loading indicator
+    return null;
   }
 
   return (
-    <AppIntroSlider
-      data={slides}
-      bottomButton={true}
-      dotClickEnabled={true}
-      renderItem={_renderItem}
-      onDone={_onDone}
-      renderDoneButton={renderDoneButton}
-      renderNextButton={renderNextButton}
-    />
+    <View style={styles.container}>
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={(event) => {
+          const slideIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+          setCurrentSlide(slideIndex);
+        }}
+      >
+        {slides.map((slide, index) => (
+          <View key={slide.key} style={styles.slide}>
+            <Text style={styles.title}>{slide.title}</Text>
+            {slide.image && (
+              <View style={styles.imageContainer}>
+                <Image source={slide.image} style={styles.image} resizeMode="contain"  />
+              </View>
+            )}
+            <Text style={styles.text}>{slide.text}</Text>
+          </View>
+        ))}
+      </ScrollView>
+      <View style={styles.pagination}>
+        {slides.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.paginationDot,
+              { backgroundColor: index === currentSlide ? THEME.primary : THEME.textSecondary }
+            ]}
+          />
+        ))}
+      </View>
+      <TouchableOpacity style={styles.button} onPress={handleNext}>
+        <Text style={styles.buttonText}>
+          {currentSlide === slides.length - 1 ? 'Next' : 'Next'}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: THEME.primary,
+  },
+  slide: {
+    width,
+    height,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: THEME.text,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  text: {
+    fontSize: 18,
+    color: THEME.textSecondary,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  imageContainer: {
+    width: width * 0.6,
+    height: height * 0.4,
+    marginBottom: 30,
+    overflow: 'hidden',
+    borderRadius: 30,
+    backgroundColor: THEME.white
+
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  paginationDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  button: {
+    backgroundColor: THEME.cardPill,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    alignSelf: 'center',
+    marginBottom: 30,
+  },
+  buttonText: {
+    color: THEME.white,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+});
+
+export default Onboarding;
