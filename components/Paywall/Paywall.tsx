@@ -181,8 +181,9 @@ export default function Subscriptions() {
           {features.map(renderFeature)}
         </View>
 
-        <View>
-          <Text style={{ color: THEME.primary }}>
+        <View style={styles.launchDealContainer} >
+        <MaterialCommunityIcons name="tag" size={24} color={THEME.warning} />
+          <Text style={styles.launchDealText}>
             Launch deal! Lifetime premium FREE—ends March 15!
           </Text>
         </View>
@@ -346,5 +347,20 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 16,
     color: THEME.text,
+  },
+  launchDealContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF9C4',
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 16,
+  },
+  launchDealText: {
+    marginLeft: 8,
+    color: THEME.warning,
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
   },
 });
