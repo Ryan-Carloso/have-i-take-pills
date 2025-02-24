@@ -87,11 +87,13 @@ const Onboarding = () => {
         }}
       >
         {slides.map((slide, index) => (
-          <View key={slide.key} style={styles.slide}>
+          <View key={slide.key} style={[
+            styles.slide,
+          ]}>
             <Text style={styles.title}>{slide.title}</Text>
             {slide.image && (
-              <View style={styles.imageContainer}>
-                <Image source={slide.image} style={styles.image} resizeMode="contain"  />
+              <View style={[styles.imageContainer, index === 0 ? {} : { backgroundColor: THEME.white } ]}>
+                <Image source={slide.image} style={styles.image} resizeMode="contain" />
               </View>
             )}
             <Text style={styles.text}>{slide.text}</Text>
@@ -121,7 +123,7 @@ const Onboarding = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.primary,
+    backgroundColor: THEME.surface,
   },
   slide: {
     width,
@@ -139,17 +141,16 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 18,
-    color: THEME.textSecondary,
+    color: THEME.text,
     textAlign: 'center',
     marginBottom: 20,
   },
   imageContainer: {
     width: width * 0.6,
-    height: height * 0.4,
+    height: height * 0.5,
     marginBottom: 30,
     overflow: 'hidden',
     borderRadius: 30,
-    backgroundColor: THEME.white
 
   },
   image: {
