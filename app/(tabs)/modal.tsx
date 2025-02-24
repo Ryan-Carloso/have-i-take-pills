@@ -150,7 +150,7 @@ export default function AddPillModal(): JSX.Element {
           and consistent.
         </Text>
         
-        <View style={{maxWidth: '50%', margin: 'auto', marginTop: 20,}} >
+        <View style={{maxWidth: '80%', margin: 'auto', marginTop: 20,}} >
         <InsightoPage/>
         </View>
       </ScrollView>
