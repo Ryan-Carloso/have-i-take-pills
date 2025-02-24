@@ -1,5 +1,6 @@
 import React from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { Tabs } from "expo-router";
 import { PillProvider } from "../../contexts/PillContext";
 import { StatusBar } from "react-native";
@@ -63,7 +64,7 @@ export default function TabLayout() {
         name="Paywall"
         options={{
           title: "Premium User",
-          tabBarIcon: ({ color }) => <MaterialIcons name="attach-money" size={24} color={color} />,
+          tabBarIcon: ({ color }) => <FontAwesome6 name="crown" size={24} color={color} />,
           //tabBarStyle: { display: 'none' }, // Oculta as abas
           //href: null,
         }}
@@ -72,7 +73,7 @@ export default function TabLayout() {
         name="PaywallOnBoard"
         options={{
           title: "Premium User",
-          tabBarIcon: ({ color }) => <MaterialIcons name="attach-money" size={24} color={color} />,
+          tabBarIcon: ({ color }) => <FontAwesome5 name="money-bill" size={24} olor={color} />,
           tabBarStyle: { display: 'none' }, // Oculta as abas
           href: null,
         }}
