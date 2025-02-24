@@ -1,18 +1,16 @@
 export const THEME = {
-  primary: '#D32F2F', // Vermelho intenso para energia e ação
-  background: '#FFFFFF', // Branco para um visual limpo
-  surface: '#F5F5F5', // Cinza claro para suavizar contrastes
-  text: '#1A1A1A', // Preto para legibilidade
-  textSecondary: '#757575', // Cinza médio para textos secundários
-  accent: '#FF6F00', // Laranja vibrante para destaques
-  white: '#FFFFFF', // Branco para áreas neutras
-  cardPill: '#B71C1C', // Vermelho mais escuro para botões ou detalhes
-  success: '#388E3C', // Verde para sucesso/concluído
-  error: '#D32F2F', // Vermelho para erros
-  warning: '#FFA000', // Amarelo alaranjado para avisos
-  Yellow: '#FFD700' // Dourado para um toque premium
-};
-
+    primary: '#1a237e',
+    background: '#F8F9FA',
+    text: '#1A1A1A',
+    textSecondary: '#6B7280',
+    accent: '#23486A',
+    white: '#fff',
+    cardPill: '#3B6790',
+    success: '#4CAF50',
+    error: '#d32f2f',
+    warning: '#F57F17',
+    Yellow: '#FFD700'
+  };
 
   
 {/*

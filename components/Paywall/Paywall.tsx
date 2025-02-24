@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   planCard: {
-    backgroundColor: THEME.surface,
+    backgroundColor: THEME.background,
     borderRadius: 16,
     padding: 24,
     width: width * 0.42,

@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   iconContainer: {
-    backgroundColor: THEME.surface,
+    backgroundColor: THEME.background,
     borderRadius: 50,
     padding: 20,
     marginBottom: 30,
