@@ -12,7 +12,7 @@ const slides = [
     key: '1',
     title: "Don't Ever Forget to Take a Supplement",
     text: "We help you out with your daily dose!",
-    image: require('../../assets/images/icon.png'),
+    image: require('../../assets/images/iconOnboard.png'),
   },
   {
     key: '2',
