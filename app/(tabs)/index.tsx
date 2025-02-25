@@ -66,13 +66,13 @@ const Onboarding = () => {
   const renderItem = ({ item }) => (
     <View style={styles.slide}>
       <Text style={styles.title}>{item.title}</Text>
+      <Text style={styles.text}>{item.text}</Text>
       {item.image && (
         <View style={[styles.imageContainer, item.key === '2' ? { backgroundColor: THEME.white } : {}]}>
-          <Image source={item.image} style={[styles.image, item.key === '3' ? {    width: width * 0.9, height: height * 0.16} : {  width: width * 0.8,height: height * 0.6,}]} resizeMode="contain" />
+          <Image source={item.image} style={[styles.image, item.key === '3' ? {    width: width * 0.9, height: height * 0.16} : {  width: width * 0.4 ,height: height * 0.3}]} resizeMode="contain" />
         </View>
 
       )}
-      <Text style={styles.text}>{item.text}</Text>
     </View>
   );
 
@@ -121,15 +121,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: THEME.text,
     textAlign: 'center',
-    marginBottom: 50,
     marginTop: 10,
   },
   image: {
-    width: width * 0.6,
-    height: height * 0.4,
   },
   imageContainer: {
     borderRadius: 10,
+    marginTop: 10,
   },
   dot: {
     backgroundColor: THEME.textSecondary,
