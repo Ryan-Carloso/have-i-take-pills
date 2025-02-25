@@ -1,10 +1,10 @@
 import React from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { Tabs } from "expo-router";
 import { PillProvider } from "../../contexts/PillContext";
 import { StatusBar } from "react-native";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { THEME } from '@/components/Theme'
 
 

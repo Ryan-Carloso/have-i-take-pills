@@ -17,7 +17,7 @@ export default function OnboardingCompleteScreen() {
   const [showHomeButton, setShowHomeButton] = useState(false);
   const [reviewRequested, setReviewRequested] = useState(false);
 
-  const AppReviewURL = "";
+  const AppReviewURL = "https://apps.apple.com/pt/app/ai-soccer-insights-football-iq/id6592649804?l=en-GB";
   // TODO: Update with the actual App Store / Play Store URL when available
 
   const handleReviewRequest = async () => {
