@@ -23,6 +23,9 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { THEME } from "@/components/Theme";
 import { router } from "expo-router";
+import { handleRestore } from "./RestoreButton";
+import ButtonPolicy from "./ButtonPolicy";
+
 
 const { width } = Dimensions.get("window");
 
@@ -220,6 +223,15 @@ export default function Subscriptions() {
             </TouchableOpacity>
           </>
         )}
+        
+        <TouchableOpacity
+        style={styles.RestoreButton}
+        onPress={handleRestore}
+      >
+        <Text style={styles.restoreButtonText}>Restore Purchase</Text>
+      </TouchableOpacity>
+
+      <ButtonPolicy/>
       </ScrollView>
     </SafeAreaView>
   );
@@ -332,6 +344,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginHorizontal: 24,
   },
+  RestoreButton: {
+    backgroundColor: THEME.cardPill,
+    paddingVertical: 6,
+    borderRadius: 30,
+    alignItems: "center",
+    marginHorizontal: 24,
+    marginTop: 20
+  },
   disabledButton: {
     backgroundColor: THEME.textSecondary,
     opacity: 0.7,
@@ -340,6 +360,11 @@ const styles = StyleSheet.create({
     color: THEME.white,
     fontSize: 18,
     fontWeight: "700",
+  },
+  restoreButtonText: {
+    color: THEME.white,
+    fontSize: 16,
+    fontWeight: "500",
   },
   featureItem: {
     flexDirection: "row",
