@@ -47,7 +47,8 @@ interface ExtendedProduct extends Product {
 
 const productSkus: ProductSkus = {
   ios: {
-    subscription: ["Monthly_DailyDose"],
+    subscription: [],
+    //subscription: ["Monthly_DailyDose"],
     nonConsumable: ["LifeTime_DailyDose"],
   },
   android: {
