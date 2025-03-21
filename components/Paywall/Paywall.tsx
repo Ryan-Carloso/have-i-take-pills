@@ -155,11 +155,9 @@ export default function Subscriptions() {
 
   const features = [
     "Unlimited pill tracking",
-//    "Detailed analytics",
     "Daily notifications for your supplement needs",
     "Never miss a necessary pill",
-//    "Export health data",
-    "Priority support",
+    "unlimited Doses history",
     "Help an indie dev"
   ];
 
