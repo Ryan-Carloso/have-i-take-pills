@@ -18,7 +18,7 @@ import MiniCalendar from './MiniCalendar';
 
 interface Pill {
   id: string;
-  name: string;
+  name: string; 
   time: string;
   frequency: number;
   taken: boolean;
