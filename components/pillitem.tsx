@@ -27,7 +27,7 @@ interface PillItemProps {
 }
 
 export default function PillItem({ pill }: PillItemProps) {
-  const { togglePillTaken, deletePill } = usePills();
+  const { togglePillTaken, deletePill, updatePill } = usePills();
   const translateX = useRef(new Animated.Value(0)).current;
   const [isDeleteVisible, setIsDeleteVisible] = useState(false);
   const [lastTakenTime, setLastTakenTime] = useState<number | null>(null);
@@ -47,26 +47,30 @@ export default function PillItem({ pill }: PillItemProps) {
     
     if (lastTakenTime) {
       const timeDifference = currentTime - lastTakenTime;
-      // Check if 24 hours have passed (24 hours = 86400000 ms)
       if (timeDifference < 43200000) {
-        // Don't allow to take the pill again if 24 hours haven't passed
         alert("You can only take this pill once every 24 hours.");
         return;
       }
     }
 
-    // Update the last taken time
+    // Update the last taken time and store the date
     setLastTakenTime(currentTime);
     setCanPress(false);
     
-    // Simulate toggling the pill taken status
-    togglePillTaken(pill.id);
+    // Update pill with current date
+    const updatedPill = {
+      ...pill,
+      taken: true,
+      lastTakenDate: new Date().toISOString()
+    };
+    
+    // Use updatePill instead of togglePillTaken to include the lastTakenDate
+    updatePill(updatedPill);
     console.log(new Date().toString());
 
-    // Re-enable the button after 12 hours
     setTimeout(() => {
       setCanPress(true);
-    }, 43200000); // Re-enable after 12 hours
+    }, 43200000);
   };
 
   const onGestureEvent = Animated.event<PanGestureHandlerGestureEvent>(

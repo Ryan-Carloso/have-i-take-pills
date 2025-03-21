@@ -53,6 +53,12 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           }}
         />
+                <Tabs.Screen
+          name="calendar"
+          options={{
+            title: "calendar",
+          }}
+        />
         <Tabs.Screen
           name="modal"
           options={{
