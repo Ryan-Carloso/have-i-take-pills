@@ -11,6 +11,7 @@ import * as StoreReview from "expo-store-review";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { THEME } from "@/components/Theme";
+import { trackVisit } from "@/components/Analytics/TrackVisit";
 
 export default function OnboardingCompleteScreen() {
   const router = useRouter();
@@ -47,6 +48,7 @@ export default function OnboardingCompleteScreen() {
   };
 
   useEffect(() => {
+    trackVisit('Open review Page', 'SubsFlow')
     const timer = setTimeout(() => {
       handleReviewRequest();
     }, 1000);
@@ -55,8 +57,8 @@ export default function OnboardingCompleteScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.content}>
+    <SafeAreaView style={styles.safeArea} >
+      <View style={styles.content} >
         <View style={styles.iconContainer}>
           <Ionicons name="star" size={60} color={THEME.cardPill} />
         </View>

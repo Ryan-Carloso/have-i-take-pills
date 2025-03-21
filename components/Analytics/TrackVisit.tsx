@@ -8,17 +8,22 @@ const appName = Application.applicationName; // Obtendo o nome do app
 const appVersion = Application.nativeApplicationVersion; // Obtendo a versão do app
 
 // Função para rastrear a visita e enviar ao servidor
-export const trackVisit = async (message, screen, flow, flowKey ) => {
+export const trackVisit = async (
+  message: string,
+  screen?: string,
+  flow?: string | null,
+  flowKey?: string | null
+) => {
   try {
     const userId = await getUserId();
-      await axios.post("https://analyticsfast.vercel.app/api/track-visit", { 
-        user_id: userId,
-        message: message, // Incluindo o nome do app na mensagem
-        AppName: `${appName} Version: ${appVersion}`,
-        screen: screen,
-        flow: flow,
-        flowKey: flowKey
-      });
+    await axios.post("https://analyticsfast.vercel.app/api/track-visit", { 
+      user_id: userId,
+      message: message,
+      AppName: `${appName} Version: ${appVersion}`,
+      screen: screen || 'unknown_screen',
+      flow: flow || 'no_flow',
+      flowKey: flowKey || 'no_key'
+    });
 
     console.log(`Mensagem enviada: ${message}`); 
   } catch (error) {

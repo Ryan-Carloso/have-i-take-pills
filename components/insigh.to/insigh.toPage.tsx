@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
 import { THEME } from '../Theme';
+import { trackVisit } from '../Analytics/TrackVisit';
 
 
 const InsightoPage = () => {
     const handlePress = () => {
     Linking.openURL('https://insigh.to/b/dailydose');
+    trackVisit('clicked feedback? button.', 'Feedback',)
   };
 
   return (

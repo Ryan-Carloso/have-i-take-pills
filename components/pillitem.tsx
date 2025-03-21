@@ -79,7 +79,7 @@ export default function PillItem({ pill }: PillItemProps) {
   );
 
   const onHandlerStateChange = (event: PanGestureHandlerGestureEvent) => {
-    if (event.nativeEvent.oldState === 4) {
+    if (event.nativeEvent.state === 4) {
       console.log("Gesture ended", event.nativeEvent.translationX);
       if (event.nativeEvent.translationX < -50) {
         // If swiped more than 50 pixels to the left, show delete button
