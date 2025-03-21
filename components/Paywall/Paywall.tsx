@@ -192,7 +192,7 @@ export default function Subscriptions() {
         <View style={styles.launchDealContainer} >
         <MaterialCommunityIcons name="tag" size={24} color={THEME.warning} />
           <Text style={styles.launchDealText}>
-            Launch deal! Lifetime premium FREE—ends March 15!
+          🚨 Last Chance! Lifetime Premium at a one-time discount—before it’s gone forever! ⏳🔥
           </Text>
         </View>
 

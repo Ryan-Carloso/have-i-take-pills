@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ryancarlos111.DailyDose"
+      "bundleIdentifier": "com.ryancarlos111.DailyDose",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -47,7 +50,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "d698b308-f2e2-46d5-aa70-e581464315d6"
+        "projectId": "86835eee-d3bc-4f71-80a2-d91f20363b02"
       }
     }
   }
