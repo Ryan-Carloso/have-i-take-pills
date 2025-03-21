@@ -12,11 +12,12 @@ import { THEME } from "@/components/Theme"
 import InsightoPage from "../../components/insigh.to/insigh.toPage"
 
 interface Pill {
-  id: string
-  name: string
-  time: string
-  taken: boolean
-  notificationId?: string
+  id: string;
+  name: string;
+  time: string;
+  taken: boolean;
+  notificationId?: string;
+  dailyReminderId?: string;
 }
 
 Notifications.setNotificationHandler({
@@ -56,11 +57,27 @@ export default function AddPillModal(): JSX.Element {
   const handleAddPill = async (): Promise<void> => {
     if (validateForm()) {
       try {
-        const permissionGranted = await requestNotificationPermissions()
-        let notificationId
+        const permissionGranted = await requestNotificationPermissions();
+        let notificationId;
+        let dailyReminderId;
 
         if (permissionGranted) {
-          notificationId = await schedulePillNotification(name, time)
+          // Schedule specific pill notification
+          notificationId = await schedulePillNotification(name, time);
+          
+          // Schedule daily reminder at local 12:00 PM
+          dailyReminderId = await Notifications.scheduleNotificationAsync({
+            content: {
+              title: "Fuel Your Gains – Supplement Time!",  
+              body: "Stay on track—take your daily supplements for peak performance!",
+              sound: true,
+            },
+            trigger: {
+              hour: 18,
+              minute: 1,
+              repeats: true,
+            },
+          });
         }
 
         const newPill: Pill = {
@@ -69,16 +86,16 @@ export default function AddPillModal(): JSX.Element {
           time: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           taken: false,
           notificationId,
-        }
-        
+          dailyReminderId,
+        };
 
-        addPill(newPill)
-        router.push('/home')
+        addPill(newPill);
+        router.push('/home');
       } catch (error) {
-        console.error("Error adding pill:", error)
+        console.error("Error adding pill:", error);
       }
     }
-  }
+  };
 
   const openTimePicker = () => {
     setShowTimePicker(true)

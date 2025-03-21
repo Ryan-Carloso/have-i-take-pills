@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import { THEME } from '@/components/Theme';
+import { trackVisit } from '@/components/Analytics/TrackVisit';
 
 const { width, height } = Dimensions.get('window');
 
@@ -41,7 +42,7 @@ const Onboarding = () => {
         }
         if (__DEV__) {
           const complete = await AsyncStorage.getItem('onboardingComplete');
-          setOnboardingComplete(true);
+          setOnboardingComplete(complete === 'true');
         }
       } catch (error) {
         console.error("Error checking onboarding status:", error);
@@ -58,6 +59,7 @@ const Onboarding = () => {
 
   const handleDone = async () => {
     try {
+      trackVisit('Finish Onboarding, sending for paywall', 'OnboardFlow');
       await AsyncStorage.setItem('onboardingComplete', 'true');
       router.push('/PaywallOnBoard');
     } catch (error) {

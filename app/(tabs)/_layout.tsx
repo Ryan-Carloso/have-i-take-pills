@@ -2,6 +2,7 @@ import React from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import { Tabs } from "expo-router";
 import { PillProvider } from "../../contexts/PillContext";
 import { StatusBar } from "react-native";
@@ -57,6 +58,7 @@ export default function TabLayout() {
           name="calendar"
           options={{
             title: "calendar",
+            tabBarIcon: ({ color }) => <FontAwesome5 name="calendar-alt" size={28} color={color} />,
           }}
         />
         <Tabs.Screen
