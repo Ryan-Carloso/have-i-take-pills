@@ -1,173 +1,213 @@
-import React, { useState, useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-} from "react-native";
+import React, { useState, useRef } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native"
 import {
   GestureHandlerRootView,
   PanGestureHandler,
-  PanGestureHandlerGestureEvent,
-} from "react-native-gesture-handler";
-import { usePills } from "../contexts/PillContext";
-import { THEME } from "./Theme";
-import { trackVisit } from "./Analytics/TrackVisit";
-import MiniCalendar from './MiniCalendar';
+  type PanGestureHandlerGestureEvent,
+} from "react-native-gesture-handler"
+import { usePills } from "../contexts/PillContext"
+import { THEME } from "./Theme"
+import { trackVisit } from "./Analytics/TrackVisit"
+import MiniCalendar from "@/components/MiniCalendar"
 
 interface Pill {
-  id: string;
-  name: string; 
-  time: string;
-  frequency: number;
-  taken: boolean;
-  lastTakenDate?: string;
-  actualTakenTime?: string;
+  id: string
+  name: string
+  time: string
+  frequency: number
+  taken: boolean
+  lastTakenDate?: string
+  actualTakenTime?: string
 }
 
 interface PillItemProps {
-  pill: Pill;
+  pill: Pill
 }
 
 export default function PillItem({ pill }: PillItemProps) {
-  const { togglePillTaken, deletePill, updatePill } = usePills();
-  const translateX = useRef(new Animated.Value(0)).current;
-  const [isDeleteVisible, setIsDeleteVisible] = useState(false);
-  const [lastTakenTime, setLastTakenTime] = useState<number | null>(null);
-  const [canPress, setCanPress] = useState(true);
+  const { togglePillTaken, deletePill, updatePill } = usePills()
+  const translateX = useRef(new Animated.Value(0)).current
+  const [isDeleteVisible, setIsDeleteVisible] = useState(false)
+  const [lastTakenTime, setLastTakenTime] = useState<number | null>(null)
+  const [canPress, setCanPress] = useState(true)
 
   // Function to handle pill press
   const handlePress = async () => {
-    const currentTime = Date.now();
-    
+    const currentTime = Date.now()
+
     // If pill is already taken, allow unchecking it
     if (pill.taken) {
       // Update pill with null lastTakenDate when unchecking
       const updatedPill = {
         ...pill,
         taken: false,
-        lastTakenDate: null // Reset the lastTakenDate when unchecking
-      };
-      updatePill(updatedPill);
-      trackVisit(`Pill unchecked: ${pill.name} at ${new Date().toLocaleString()}`, 'DaileUseFlow');
-      setCanPress(true);
-      setLastTakenTime(null);
-      return;
+        lastTakenDate: null, // Reset the lastTakenDate when unchecking
+      }
+      updatePill(updatedPill)
+      trackVisit(`Pill unchecked: ${pill.name} at ${new Date().toLocaleString()}`, "DaileUseFlow")
+      setCanPress(true)
+      setLastTakenTime(null)
+      return
     }
-    
+
     if (lastTakenTime) {
-      const timeDifference = currentTime - lastTakenTime;
+      const timeDifference = currentTime - lastTakenTime
       if (timeDifference < 43200000) {
-        alert("You can only take this pill once every 24 hours.");
-        return;
+        alert("You can only take this pill once every 24 hours.")
+        return
       }
     }
 
     // Update the last taken time and store the date
-    setLastTakenTime(currentTime);
-    setCanPress(false);
-    
+    setLastTakenTime(currentTime)
+    setCanPress(false)
+
     // Update pill with current date and actual taken time
-    const currentDateTime = new Date();
+    const currentDateTime = new Date()
     const updatedPill = {
       ...pill,
       taken: true,
       lastTakenDate: currentDateTime.toISOString(),
-      actualTakenTime: currentDateTime.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit'
-      })
-    };
-    
+      actualTakenTime: currentDateTime.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    }
+
     // Use updatePill instead of togglePillTaken to include the lastTakenDate
-    updatePill(updatedPill);
-    trackVisit(`Pill taken: ${pill.name} at ${currentDateTime.toLocaleString()}`, 'DaileUseFlow');
+    updatePill(updatedPill)
+    trackVisit(`Pill taken: ${pill.name} at ${currentDateTime.toLocaleString()}`, "DaileUseFlow")
 
     setTimeout(() => {
-      setCanPress(true);
-    }, 43200000);
-  };
+      setCanPress(true)
+    }, 43200000)
+  }
 
   const onGestureEvent = Animated.event<PanGestureHandlerGestureEvent>(
     [{ nativeEvent: { translationX: translateX } }],
     { useNativeDriver: true }
   );
 
+  const resetPosition = () => {
+    setIsDeleteVisible(false);
+    Animated.spring(translateX, {
+      toValue: 0,
+      useNativeDriver: true,
+      damping: 20,
+      stiffness: 200,
+    }).start();
+  };
+
   const onHandlerStateChange = (event: PanGestureHandlerGestureEvent) => {
-    if (event.nativeEvent.state === 4) {
-      console.log("Gesture ended", event.nativeEvent.translationX);
-      if (event.nativeEvent.translationX < -50) {
-        // If swiped more than 50 pixels to the left, show delete button
+    if (event.nativeEvent.state === 4) { // END state
+      const swipeThreshold = -80;
+      if (event.nativeEvent.translationX < swipeThreshold) {
         setIsDeleteVisible(true);
-        Animated.timing(translateX, {
-          toValue: -10,
-          duration: 200,
+        Animated.spring(translateX, {
+          toValue: -80,
           useNativeDriver: true,
+          damping: 20,
+          stiffness: 200,
         }).start();
       } else {
-        // Otherwise, reset position and hide delete button
-        setIsDeleteVisible(false);
-        Animated.spring(translateX, {
-          toValue: 0,
-          useNativeDriver: true,
-        }).start();
+        resetPosition();
       }
     }
   };
 
+  // Add a function to handle delete with animation
+  const handleDelete = () => {
+    // First animate the item off screen
+    Animated.timing(translateX, {
+      toValue: -500, // Move far off screen to the left
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      // Then call the actual delete function after animation completes
+      deletePill(pill.id);
+    });
+    
+    // Track deletion for analytics
+    trackVisit(`Pill deleted: ${pill.name}`, "DaileUseFlow");
+  };
+
   return (
     <GestureHandlerRootView style={styles.container}>
+      <Animated.View
+        style={[
+          styles.deleteButtonContainer,
+          {
+            opacity: translateX.interpolate({
+              inputRange: [-80, 0],
+              outputRange: [1, 0],
+            }),
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={handleDelete} // Use the new handleDelete function
+        >
+          <Text style={styles.deleteButtonText}>Delete</Text>
+        </TouchableOpacity>
+      </Animated.View>
+
       <PanGestureHandler
         onGestureEvent={onGestureEvent}
         onHandlerStateChange={onHandlerStateChange}
+        activeOffsetX={[-10, 10]}
+        failOffsetY={[-20, 20]}
       >
         <Animated.View
-          style={[styles.pillContainer, { transform: [{ translateX }] }]}
+          style={[
+            styles.pillContainer,
+            {
+              transform: [{
+                translateX: translateX.interpolate({
+                  inputRange: [-80, 0],
+                  outputRange: [-80, 0],
+                  extrapolate: 'clamp'
+                })
+              }]
+            }
+          ]}
         >
           <TouchableOpacity
-            style={[
-              styles.pillContent,
-              pill.taken && styles.taken,
-              isDeleteVisible && { borderRadius: 0 },
-              !canPress && !pill.taken && styles.disabledButton
-            ]}
+            style={[styles.pillContent, pill.taken && styles.taken, !canPress && !pill.taken && styles.disabledButton]}
             onPress={handlePress}
             disabled={!canPress && !pill.taken}
+            activeOpacity={0.8}
           >
             <View style={styles.pillInfo}>
-              {pill.taken ? (
-                <View>
-                  <Text style={styles.name}>{pill.name}</Text>
-                  <Text style={styles.takenText}>
-                    Has already been taken today
-                  </Text>
-                  <Text style={styles.uncheckHint}>
-                    (Tap to uncheck if marked by mistake)
-                  </Text>
-                  <MiniCalendar lastTakenDate={pill.lastTakenDate} />
-                </View>
-              ) : (
-                <View>
-                  <Text style={styles.name}>{pill.name}</Text>
+              <View style={styles.contentWrapper}>
+                <Text style={styles.name}>{pill.name}</Text>
+
+                {pill.taken ? (
+                  <>
+                    <Text style={styles.takenText}>Taken today</Text>
+                    <Text style={styles.uncheckHint}>Tap to uncheck if marked by mistake</Text>
+                  </>
+                ) : (
                   <Text style={styles.details}>
-                    Every {pill.frequency} at {pill.time}
+                    Every {pill.frequency === 1 ? "day" : `${pill.frequency} days`} at {pill.time}
                   </Text>
-                  <MiniCalendar lastTakenDate={pill.lastTakenDate} />
-                </View>
-              )}
+                )}
+
+                <MiniCalendar lastTakenDate={pill.lastTakenDate} />
+              </View>
             </View>
 
-            <View style={[styles.status, pill.taken && styles.statusTaken]} />
+            <View style={styles.statusContainer}>
+              <View style={[styles.status, pill.taken && styles.statusTaken]}>
+                {pill.taken && (
+                  <View style={styles.checkmark}>
+                    <View style={styles.checkmarkLine1} />
+                    <View style={styles.checkmarkLine2} />
+                  </View>
+                )}
+              </View>
+            </View>
           </TouchableOpacity>
-          {isDeleteVisible && (
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => deletePill(pill.id)}
-            >
-              <Text style={styles.deleteButtonText}>Delete</Text>
-            </TouchableOpacity>
-          )}
         </Animated.View>
       </PanGestureHandler>
     </GestureHandlerRootView>
@@ -176,75 +216,132 @@ export default function PillItem({ pill }: PillItemProps) {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
+    marginBottom: 16,
+    position: "relative",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  deleteButtonContainer: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: THEME.error,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+    zIndex: -1,
   },
   pillContainer: {
-    flexDirection: "row",
     width: "100%",
+    borderRadius: 12,
+    overflow: "hidden",
   },
   pillContent: {
-    flex: 1,
     backgroundColor: THEME.cardPill,
-    borderRadius: 8,
     padding: 16,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    elevation: 2,
+    alignItems: "flex-start",
+    elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    borderRadius: 12,
   },
   disabledButton: {
+    opacity: 0.8,
   },
   taken: {
     backgroundColor: THEME.accent,
   },
   takenText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "bold",
     color: THEME.white,
     marginTop: 4,
   },
   uncheckHint: {
-    fontSize: 12,
-    fontStyle: 'italic',
+    fontSize: 13,
+    fontStyle: "italic",
     color: THEME.white,
     marginTop: 2,
     opacity: 0.8,
   },
   name: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     marginBottom: 4,
     color: THEME.white,
   },
   details: {
-    fontSize: 14,
-    fontWeight: "bold",
+    fontSize: 15,
+    fontWeight: "500",
     color: THEME.white,
+    opacity: 0.9,
+  },
+  statusContainer: {
+    paddingTop: 4,
   },
   status: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#fff",
-  },
-  statusTaken: {
-    backgroundColor: THEME.accent,
-  },
-  deleteButton: {
-    backgroundColor: "#ff4444",
-    width: 80,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
     justifyContent: "center",
     alignItems: "center",
-    borderBottomRightRadius: 15,
-    borderTopRightRadius: 15,
+  },
+  statusTaken: {
+    backgroundColor: THEME.success,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+  },
+  checkmark: {
+    width: 12,
+    height: 12,
+    position: "relative",
+  },
+  checkmarkLine1: {
+    position: "absolute",
+    width: 3,
+    height: 6,
+    backgroundColor: THEME.white,
+    left: 0,
+    top: 4,
+    transform: [{ rotate: "45deg" }],
+  },
+  checkmarkLine2: {
+    position: "absolute",
+    width: 3,
+    height: 10,
+    backgroundColor: THEME.white,
+    right: 0,
+    top: 0,
+    transform: [{ rotate: "-45deg" }],
+  },
+  deleteButton: {
+    width: 80,
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
   deleteButtonText: {
-    color: "white",
+    color: THEME.white,
     fontWeight: "bold",
-    fontSize: 20,
+    fontSize: 16,
   },
-});
+  contentWrapper: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  pillInfo: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+})
+
