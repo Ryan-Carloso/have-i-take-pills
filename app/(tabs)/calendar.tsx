@@ -109,7 +109,9 @@ export default function Calendar() {
               <View key={pill.id} style={styles.pillItem}>
                 <View style={styles.pillDot} />
                 <Text style={styles.pillName}>{pill.name}</Text>
-                <Text style={styles.pillTime}>at {pill.time}</Text>
+                <Text style={styles.pillTime}>
+                  taken at {pill.actualTakenTime || pill.time}
+                </Text>
               </View>
             ))}
           </View>

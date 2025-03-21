@@ -13,6 +13,7 @@ import {
 } from "react-native-gesture-handler";
 import { usePills } from "../contexts/PillContext";
 import { THEME } from "./Theme";
+import { trackVisit } from "./Analytics/TrackVisit";
 
 interface Pill {
   id: string;
@@ -20,6 +21,8 @@ interface Pill {
   time: string;
   frequency: number;
   taken: boolean;
+  lastTakenDate?: string;
+  actualTakenTime?: string;
 }
 
 interface PillItemProps {
@@ -39,7 +42,14 @@ export default function PillItem({ pill }: PillItemProps) {
     
     // If pill is already taken, allow unchecking it
     if (pill.taken) {
-      togglePillTaken(pill.id);
+      // Update pill with null lastTakenDate when unchecking
+      const updatedPill = {
+        ...pill,
+        taken: false,
+        lastTakenDate: null // Reset the lastTakenDate when unchecking
+      };
+      updatePill(updatedPill);
+      trackVisit(`Pill unchecked: ${pill.name} at ${new Date().toLocaleString()}`, 'DaileUseFlow');
       setCanPress(true);
       setLastTakenTime(null);
       return;
@@ -57,16 +67,21 @@ export default function PillItem({ pill }: PillItemProps) {
     setLastTakenTime(currentTime);
     setCanPress(false);
     
-    // Update pill with current date
+    // Update pill with current date and actual taken time
+    const currentDateTime = new Date();
     const updatedPill = {
       ...pill,
       taken: true,
-      lastTakenDate: new Date().toISOString()
+      lastTakenDate: currentDateTime.toISOString(),
+      actualTakenTime: currentDateTime.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit'
+      })
     };
     
     // Use updatePill instead of togglePillTaken to include the lastTakenDate
     updatePill(updatedPill);
-    console.log(new Date().toString());
+    trackVisit(`Pill taken: ${pill.name} at ${currentDateTime.toLocaleString()}`, 'DaileUseFlow');
 
     setTimeout(() => {
       setCanPress(true);
