@@ -89,6 +89,7 @@ export default function PillItem({ pill }: PillItemProps) {
   );
 
   const resetPosition = () => {
+    translateX.setValue(0);
     setIsDeleteVisible(false);
     Animated.spring(translateX, {
       toValue: 0,
@@ -99,6 +100,7 @@ export default function PillItem({ pill }: PillItemProps) {
   };
 
   const onHandlerStateChange = (event: PanGestureHandlerGestureEvent) => {
+    console.log('swiped')
     if (event.nativeEvent.state === 4) { // END state
       const swipeThreshold = -80;
       if (event.nativeEvent.translationX < swipeThreshold) {
@@ -237,11 +239,13 @@ const styles = StyleSheet.create({
   pillContainer: {
     width: "100%",
     borderRadius: 12,
+
     overflow: "hidden",
   },
   pillContent: {
     backgroundColor: THEME.cardPill,
     padding: 16,
+
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
@@ -257,6 +261,7 @@ const styles = StyleSheet.create({
   },
   taken: {
     backgroundColor: THEME.accent,
+    
   },
   takenText: {
     fontSize: 15,
