@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  AsyncStorage,
 } from "react-native";
 import {
   GestureHandlerRootView,
@@ -37,6 +36,15 @@ export default function PillItem({ pill }: PillItemProps) {
   // Function to handle pill press
   const handlePress = async () => {
     const currentTime = Date.now();
+    
+    // If pill is already taken, allow unchecking it
+    if (pill.taken) {
+      togglePillTaken(pill.id);
+      setCanPress(true);
+      setLastTakenTime(null);
+      return;
+    }
+    
     if (lastTakenTime) {
       const timeDifference = currentTime - lastTakenTime;
       // Check if 24 hours have passed (24 hours = 86400000 ms)
@@ -102,16 +110,19 @@ export default function PillItem({ pill }: PillItemProps) {
               styles.pillContent,
               pill.taken && styles.taken,
               isDeleteVisible && { borderRadius: 0 },
-              !canPress && styles.disabledButton // Add a style for the disabled button
+              !canPress && !pill.taken && styles.disabledButton // Only apply disabled style if not taken
             ]}
             onPress={handlePress} // Use the handlePress function
-            disabled={!canPress} // Disable the button if 24 hours haven't passed
+            disabled={!canPress && !pill.taken} // Only disable if not taken and can't press
           >
-            {pill.taken && !canPress ? (
+            {pill.taken ? (
               <View>
                 <Text style={styles.name}>{pill.name}</Text>
                 <Text style={styles.takenText}>
                   Has already been taken today
+                </Text>
+                <Text style={styles.uncheckHint}>
+                  (Tap to uncheck if marked by mistake)
                 </Text>
               </View>
             ) : (
@@ -171,6 +182,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: THEME.white,
     marginTop: 4,
+  },
+  uncheckHint: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    color: THEME.white,
+    marginTop: 2,
+    opacity: 0.8,
   },
   name: {
     fontSize: 18,

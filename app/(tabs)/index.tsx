@@ -39,6 +39,10 @@ const Onboarding = () => {
           const complete = await AsyncStorage.getItem('onboardingComplete');
           setOnboardingComplete(complete === 'true');
         }
+        if (__DEV__) {
+          const complete = await AsyncStorage.getItem('onboardingComplete');
+          setOnboardingComplete(true);
+        }
       } catch (error) {
         console.error("Error checking onboarding status:", error);
       }
