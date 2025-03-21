@@ -1,7 +1,7 @@
 // @ts-ignore
 import React from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { ExternalPathString, router } from 'expo-router';
+import { ScrollView as ScrollViewNative } from 'react-native';import { ExternalPathString, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -10,6 +10,7 @@ import PillItem from '../../components/pillitem';
 import Header from '@/components/Header';
 import EmptyState from '../../components/EmptyState';
 import { THEME } from '@/components/Theme';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export default function HomeScreen() {
   const { pills, loadPills } = usePills();
@@ -23,7 +24,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      
+      <StatusBar style="light" />
       <Header/>
 
       {pills.length === 0 ? (
@@ -34,7 +35,9 @@ export default function HomeScreen() {
           renderItem={({ item }) => <PillItem pill={item} />}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true} // Change to true to debug scrolling
+          scrollEnabled={true} // Explicitly enable scrolling
+          bounces={true} // Enable bounce effect
         />
       )}
 
@@ -45,7 +48,6 @@ export default function HomeScreen() {
 >
   <Ionicons name="add" size={24} color="white" />
 </TouchableOpacity>
-
 
     </View>
   );

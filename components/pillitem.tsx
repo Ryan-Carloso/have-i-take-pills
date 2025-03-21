@@ -14,6 +14,7 @@ import {
 import { usePills } from "../contexts/PillContext";
 import { THEME } from "./Theme";
 import { trackVisit } from "./Analytics/TrackVisit";
+import MiniCalendar from './MiniCalendar';
 
 interface Pill {
   id: string;
@@ -129,29 +130,33 @@ export default function PillItem({ pill }: PillItemProps) {
               styles.pillContent,
               pill.taken && styles.taken,
               isDeleteVisible && { borderRadius: 0 },
-              !canPress && !pill.taken && styles.disabledButton // Only apply disabled style if not taken
+              !canPress && !pill.taken && styles.disabledButton
             ]}
-            onPress={handlePress} // Use the handlePress function
-            disabled={!canPress && !pill.taken} // Only disable if not taken and can't press
+            onPress={handlePress}
+            disabled={!canPress && !pill.taken}
           >
-            {pill.taken ? (
-              <View>
-                <Text style={styles.name}>{pill.name}</Text>
-                <Text style={styles.takenText}>
-                  Has already been taken today
-                </Text>
-                <Text style={styles.uncheckHint}>
-                  (Tap to uncheck if marked by mistake)
-                </Text>
-              </View>
-            ) : (
-              <View>
-                <Text style={styles.name}>{pill.name}</Text>
-                <Text style={styles.details}>
-                  Every {pill.frequency} at {pill.time}
-                </Text>
-              </View>
-            )}
+            <View style={styles.pillInfo}>
+              {pill.taken ? (
+                <View>
+                  <Text style={styles.name}>{pill.name}</Text>
+                  <Text style={styles.takenText}>
+                    Has already been taken today
+                  </Text>
+                  <Text style={styles.uncheckHint}>
+                    (Tap to uncheck if marked by mistake)
+                  </Text>
+                  <MiniCalendar lastTakenDate={pill.lastTakenDate} />
+                </View>
+              ) : (
+                <View>
+                  <Text style={styles.name}>{pill.name}</Text>
+                  <Text style={styles.details}>
+                    Every {pill.frequency} at {pill.time}
+                  </Text>
+                  <MiniCalendar lastTakenDate={pill.lastTakenDate} />
+                </View>
+              )}
+            </View>
 
             <View style={[styles.status, pill.taken && styles.statusTaken]} />
           </TouchableOpacity>
