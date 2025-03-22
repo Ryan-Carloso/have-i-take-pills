@@ -45,22 +45,14 @@ export default function PillItem({ pill }: PillItemProps) {
       }
       updatePill(updatedPill)
       trackVisit(`Pill unchecked: ${pill.name} at ${new Date().toLocaleString()}`, "DaileUseFlow")
-      setCanPress(true)
       setLastTakenTime(null)
       return
     }
 
-    if (lastTakenTime) {
-      const timeDifference = currentTime - lastTakenTime
-      if (timeDifference < 43200000) {
-        alert("You can only take this pill once every 24 hours.")
-        return
-      }
-    }
-
+    // Remove the time difference check since we're not disabling buttons
+    
     // Update the last taken time and store the date
     setLastTakenTime(currentTime)
-    setCanPress(false)
 
     // Update pill with current date and actual taken time
     const currentDateTime = new Date()
@@ -78,9 +70,7 @@ export default function PillItem({ pill }: PillItemProps) {
     updatePill(updatedPill)
     trackVisit(`Pill taken: ${pill.name} at ${currentDateTime.toLocaleString()}`, "DaileUseFlow")
 
-    setTimeout(() => {
-      setCanPress(true)
-    }, 43200000)
+    // Remove the setTimeout that re-enables the button
   }
 
   const onGestureEvent = Animated.event<PanGestureHandlerGestureEvent>(
@@ -175,9 +165,8 @@ export default function PillItem({ pill }: PillItemProps) {
           ]}
         >
           <TouchableOpacity
-            style={[styles.pillContent, pill.taken && styles.taken, !canPress && !pill.taken && styles.disabledButton]}
+            style={[styles.pillContent, pill.taken && styles.taken]}
             onPress={handlePress}
-            disabled={!canPress && !pill.taken}
             activeOpacity={0.8}
           >
             <View style={styles.pillInfo}>
@@ -200,14 +189,7 @@ export default function PillItem({ pill }: PillItemProps) {
             </View>
 
             <View style={styles.statusContainer}>
-              <View style={[styles.status, pill.taken && styles.statusTaken]}>
-                {pill.taken && (
-                  <View style={styles.checkmark}>
-                    <View style={styles.checkmarkLine1} />
-                    <View style={styles.checkmarkLine2} />
-                  </View>
-                )}
-              </View>
+
             </View>
           </TouchableOpacity>
         </Animated.View>
@@ -238,7 +220,7 @@ const styles = StyleSheet.create({
   },
   pillContainer: {
     width: "100%",
-    borderRadius: 12,
+    
 
     overflow: "hidden",
   },
@@ -254,7 +236,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
-    borderRadius: 12,
   },
   disabledButton: {
     opacity: 0.8,
