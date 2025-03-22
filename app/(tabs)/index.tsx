@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppIntroSlider from 'react-native-app-intro-slider';
+import * as StoreReview from 'expo-store-review';
 import { THEME } from '@/components/Theme';
 import { trackVisit } from '@/components/Analytics/TrackVisit';
 
@@ -62,21 +63,33 @@ const Onboarding = () => {
         // Increment visit count
         visits += 1;
         
-        // Log specific milestones
-        if (visits === 3) {
-          console.log('User has opened the app for the 3rd time!');
-        } else if (visits === 5) {
-          console.log('User has opened the app for the 5th time!');
-        } else if (visits === 10) {
-          console.log('User has opened the app for the 10th time!');
-        } else if (visits === 15) {
-          console.log('User has opened the app for the 15th time!');
+        // Request review at specific milestones
+        if (visits === 3 || visits === 5 || visits === 10 || visits === 15) {
+          console.log(`User has opened the app for the ${visits}${getOrdinalSuffix(visits)} time!`);
+          
+          // Check if device supports review requests
+          const isAvailable = await StoreReview.isAvailableAsync();
+          if (isAvailable) {
+            // Request review
+            await StoreReview.requestReview();
+          }
         }
         
         // Save updated count
         await AsyncStorage.setItem('appVisitCount', visits.toString());
       } catch (error) {
         console.error("Error tracking app visits:", error);
+      }
+    };
+    
+    // Helper function to get ordinal suffix (1st, 2nd, 3rd, etc.)
+    const getOrdinalSuffix = (n) => {
+      if (n > 3 && n < 21) return 'th';
+      switch (n % 10) {
+        case 1: return 'st';
+        case 2: return 'nd';
+        case 3: return 'rd';
+        default: return 'th';
       }
     };
     
