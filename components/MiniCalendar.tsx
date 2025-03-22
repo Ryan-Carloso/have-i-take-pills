@@ -1,7 +1,6 @@
-import React, { useState, useRef } from "react"
 import { View, Text, StyleSheet } from "react-native"
 import { THEME } from "./Theme"
-import { format, subDays, isSameDay, parseISO } from "date-fns"
+import { subDays, isSameDay, parseISO } from "date-fns"
 
 interface MiniCalendarProps {
   lastTakenDate?: string
@@ -9,67 +8,99 @@ interface MiniCalendarProps {
 
 export default function MiniCalendar({ lastTakenDate }: MiniCalendarProps) {
   const today = new Date()
-  const last7Days = Array.from({ length: 7 }, (_, i) => subDays(today, 6 - i))
+  
+  // Create array of the last 3 days (today and 2 days before)
+  const threeDays = Array.from({ length: 3 }, (_, i) => subDays(today, 2 - i))
+
+  // Day labels - show only the last 3 days
+  const dayLabels = threeDays.map(date => {
+    const day = date.getDay()
+    return ["S", "M", "T", "W", "T", "F", "S"][day]
+  })
 
   return (
     <View style={styles.container}>
-      {last7Days.map((date) => {
-        const isToday = isSameDay(date, today)
-        const wasTaken = lastTakenDate && isSameDay(parseISO(lastTakenDate), date)
+      <View style={styles.daysRow}>
+        {dayLabels.map((day, index) => (
+          <Text
+            key={`label-${index}`}
+            style={[styles.dayLabel, isSameDay(threeDays[index], today) && styles.todayLabel]}
+          >
+            {day}
+          </Text>
+        ))}
+      </View>
 
-        return (
-          <View key={date.toString()} style={styles.dayContainer}>
-            <Text style={[styles.dayText, isToday && styles.todayText]}>{format(date, "E")[0]}</Text>
-            <View style={[styles.indicator, wasTaken && styles.taken, isToday && styles.today]} />
-          </View>
-        )
-      })}
+      {/* Day indicators */}
+      <View style={styles.dotsRow}>
+        {threeDays.map((date, index) => {
+          const isToday = isSameDay(date, today)
+          const wasTaken = lastTakenDate && isSameDay(parseISO(lastTakenDate), date)
+
+          return (
+            <View key={`dot-${index}`} style={[styles.dotContainer, isToday && styles.todayContainer]}>
+              <View style={[styles.dot, wasTaken && styles.takenDot, isToday && styles.todayDot]} />
+            </View>
+          )
+        })}
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
+    width: 70, // Increased width for bigger calendar
+    paddingVertical: 4, // More vertical padding
+  },
+  daysRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingTop: 12,
-    paddingBottom: 4,
-    paddingHorizontal: 8,
-    marginTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255, 255, 255, 0.15)",
+    marginBottom: 4, // Increased spacing
   },
-  dayContainer: {
-    alignItems: "center",
-    gap: 6,
+  dotsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
-  dayText: {
-    fontSize: 13,
+  dayLabel: {
+    fontSize: 14, // Larger font size
     color: THEME.white,
-    opacity: 0.9,
-    fontWeight: "500",
+    opacity: 0.7,
+    width: 16, // Wider to accommodate larger text
+    textAlign: "center",
   },
-  todayText: {
-    fontWeight: "bold",
+  todayLabel: {
     opacity: 1,
+    fontWeight: "600",
   },
-  indicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  dotContainer: {
+    width: 16, // Larger container
+    height: 16, // Larger container
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  todayContainer: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 8, // Larger radius
+  },
+  dot: {
+    width: 6, // Larger dot
+    height: 6, // Larger dot
+    borderRadius: 3,
     backgroundColor: THEME.white,
     opacity: 0.3,
   },
-  taken: {
+  takenDot: {
     opacity: 1,
     backgroundColor: THEME.success,
-  },
-  today: {
-    width: 10,
-    height: 10,
+    width: 10, // Larger taken dot
+    height: 10, // Larger taken dot
     borderRadius: 5,
-    borderWidth: 1,
-    borderColor: THEME.white,
+  },
+  todayDot: {
+    width: 8, // Larger today dot
+    height: 8, // Larger today dot
+    borderRadius: 4,
   },
 })
 

@@ -1,6 +1,4 @@
-"use client"
-
-import { useRef } from "react"
+import React, { useRef } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native"
 import {
   GestureHandlerRootView,
@@ -113,9 +111,7 @@ export default function PillItem({ pill }: PillItemProps) {
 
   // Format frequency text
   const getFrequencyText = () => {
-    if (pill.frequency === 1) return "Daily"
-    if (pill.frequency === 2) return "Every other day"
-    return `Every ${pill.frequency} days`
+    return `Every days`
   }
 
   return (
@@ -185,7 +181,7 @@ export default function PillItem({ pill }: PillItemProps) {
                 <View style={styles.scheduleContainer}>
                   <MaterialIcons name="schedule" size={14} color={THEME.white} style={styles.scheduleIcon} />
                   <Text style={styles.scheduleText}>
-                    {getFrequencyText()} • {pill.time}
+                    EveryDay At • {pill.time}
                   </Text>
                 </View>
               )}
