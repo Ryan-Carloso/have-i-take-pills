@@ -170,6 +170,7 @@ export default function PillItem({ pill }: PillItemProps) {
             activeOpacity={0.8}
           >
             <View style={styles.pillInfo}>
+            <View style={{flexDirection: 'row'}} >
               <View style={styles.contentWrapper}>
                 <Text style={styles.name}>{pill.name}</Text>
 
@@ -184,13 +185,21 @@ export default function PillItem({ pill }: PillItemProps) {
                   </Text>
                 )}
 
-                <MiniCalendar lastTakenDate={pill.lastTakenDate} />
+<View style={[styles.status, pill.taken && styles.statusTaken]}>
+                {pill.taken && (
+                  <View style={styles.checkmark}>
+
+                  </View>
+                )}
               </View>
-            </View>
+                <MiniCalendar lastTakenDate={pill.lastTakenDate} />
+                
+              </View>
 
-            <View style={styles.statusContainer}>
+              </View>
 
             </View>
+                
           </TouchableOpacity>
         </Animated.View>
       </PanGestureHandler>
@@ -220,7 +229,6 @@ const styles = StyleSheet.create({
   },
   pillContainer: {
     width: "100%",
-    
 
     overflow: "hidden",
   },
