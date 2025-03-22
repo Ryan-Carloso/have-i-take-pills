@@ -44,10 +44,42 @@ const Onboarding = () => {
           const complete = await AsyncStorage.getItem('onboardingComplete');
           setOnboardingComplete(complete === 'true');
         }
+        
+        // Track app visits
+        await trackAppVisits();
       } catch (error) {
         console.error("Error checking onboarding status:", error);
       }
     };
+    
+    // Function to track app visits
+    const trackAppVisits = async () => {
+      try {
+        // Get current visit count
+        const visitsString = await AsyncStorage.getItem('appVisitCount');
+        let visits = visitsString ? parseInt(visitsString) : 0;
+        
+        // Increment visit count
+        visits += 1;
+        
+        // Log specific milestones
+        if (visits === 3) {
+          console.log('User has opened the app for the 3rd time!');
+        } else if (visits === 5) {
+          console.log('User has opened the app for the 5th time!');
+        } else if (visits === 10) {
+          console.log('User has opened the app for the 10th time!');
+        } else if (visits === 15) {
+          console.log('User has opened the app for the 15th time!');
+        }
+        
+        // Save updated count
+        await AsyncStorage.setItem('appVisitCount', visits.toString());
+      } catch (error) {
+        console.error("Error tracking app visits:", error);
+      }
+    };
+    
     checkOnboarding();
   }, []);
 
