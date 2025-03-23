@@ -12,6 +12,7 @@ import { usePills } from "../contexts/PillContext"
 import { THEME } from "./Theme"
 import { trackVisit } from "./Analytics/TrackVisit"
 import MiniCalendar from "@/components/MiniCalendar"
+import { supabase } from "../lib/supabase"; // Make sure to import supabase client
 
 interface Pill {
   id: string
@@ -68,38 +69,33 @@ export default function PillItem({ pill }: PillItemProps) {
     trackVisit(`Pill taken: ${pill.name} at ${currentDateTime.toLocaleString()}`, "DaileUseFlow")
   }
 
-  // Function to save pill history to AsyncStorage
+  // Function to save pill history to Supabase
   const savePillHistory = async (pillId: string, pillName: string, takenDateTime: Date) => {
     try {
-      // Get existing history from AsyncStorage
-      const historyKey = `pill_history_${pillId}`
-      const existingHistoryJson = await AsyncStorage.getItem(historyKey)
-      
-      // Parse existing history or create new array if none exists
-      const existingHistory = existingHistoryJson ? JSON.parse(existingHistoryJson) : []
-      
-      // Add new entry to history
+      // Create a new entry for Supabase
       const newEntry = {
-        date: takenDateTime.toISOString(),
-        formattedDate: takenDateTime.toLocaleDateString(),
-        formattedTime: takenDateTime.toLocaleTimeString("en-US", {
+        pill_id: pillId,
+        pill_name: pillName,
+        taken_at: takenDateTime.toISOString(),
+        formatted_date: takenDateTime.toLocaleDateString(),
+        formatted_time: takenDateTime.toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
         }),
       }
       
-      // Add to beginning of array to keep most recent first
-      const updatedHistory = [newEntry, ...existingHistory]
+      // Insert the new entry into Supabase
+      const { data, error } = await supabase
+        .from('pill_history')
+        .insert(newEntry)
       
-      // Limit history to last 30 entries to prevent excessive storage
-      const limitedHistory = updatedHistory.slice(0, 30)
+      if (error) {
+        throw error
+      }
       
-      // Save updated history back to AsyncStorage
-      await AsyncStorage.setItem(historyKey, JSON.stringify(limitedHistory))
-      
-      console.log(`Pill history saved: ${pillName} taken at ${takenDateTime.toLocaleString()}`)
+      console.log(`Pill history saved to Supabase: ${pillName} taken at ${takenDateTime.toLocaleString()}`)
     } catch (error) {
-      console.error('Error saving pill history:', error)
+      console.error('Error saving pill history to Supabase:', error)
     }
   }
 
