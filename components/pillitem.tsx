@@ -12,7 +12,8 @@ import { usePills } from "../contexts/PillContext"
 import { THEME } from "./Theme"
 import { trackVisit } from "./Analytics/TrackVisit"
 import MiniCalendar from "@/components/MiniCalendar"
-import { supabase } from "../lib/supabase"; // Make sure to import supabase client
+import { supabase } from "../lib/supabase"
+import { getUserId } from "./Analytics/UserID"
 
 interface Pill {
   id: string
@@ -79,7 +80,7 @@ export default function PillItem({ pill }: PillItemProps) {
       const newEntry = {
         pill_id: pillId,
         pill_name: pillName,
-        user_id: userId,
+        user_id: userId, // Add the user ID to the entry
         taken_at: takenDateTime.toISOString(),
         formatted_date: takenDateTime.toLocaleDateString(),
         formatted_time: takenDateTime.toLocaleTimeString("en-US", {
@@ -97,7 +98,7 @@ export default function PillItem({ pill }: PillItemProps) {
         throw error
       }
       
-      console.log(`Pill history saved to Supabase: ${pillName} taken at ${takenDateTime.toLocaleString()} for user ${userId}`)
+      console.log(`Pill history saved to Supabase: ${pillName} taken at ${takenDateTime.toLocaleString()}`)
     } catch (error) {
       console.error('Error saving pill history to Supabase:', error)
     }
