@@ -72,10 +72,14 @@ export default function PillItem({ pill }: PillItemProps) {
   // Function to save pill history to Supabase
   const savePillHistory = async (pillId: string, pillName: string, takenDateTime: Date) => {
     try {
+      // Get the user ID
+      const userId = await getUserId();
+      
       // Create a new entry for Supabase
       const newEntry = {
         pill_id: pillId,
         pill_name: pillName,
+        user_id: userId,
         taken_at: takenDateTime.toISOString(),
         formatted_date: takenDateTime.toLocaleDateString(),
         formatted_time: takenDateTime.toLocaleTimeString("en-US", {
@@ -93,7 +97,7 @@ export default function PillItem({ pill }: PillItemProps) {
         throw error
       }
       
-      console.log(`Pill history saved to Supabase: ${pillName} taken at ${takenDateTime.toLocaleString()}`)
+      console.log(`Pill history saved to Supabase: ${pillName} taken at ${takenDateTime.toLocaleString()} for user ${userId}`)
     } catch (error) {
       console.error('Error saving pill history to Supabase:', error)
     }

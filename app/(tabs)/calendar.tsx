@@ -1,13 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { usePills } from '../../contexts/PillContext';
 import { THEME } from '../../components/Theme';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, parseISO } from 'date-fns';
+import { supabase } from '../../lib/supabase';
+import { getUserId } from '../../components/Analytics/UserID';
 
 export default function Calendar() {
   const { pills } = usePills();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [pillHistory, setPillHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
+  
+  // Load user ID and pill history on component mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        setLoading(true);
+        // Get the user ID
+        const id = await getUserId();
+        setUserId(id);
+        
+        // Fetch pill history from Supabase for this user
+        const { data, error } = await supabase
+          .from('pill_history')
+          .select('*')
+          .eq('user_id', id)
+          .order('taken_at', { ascending: false });
+          
+        if (error) {
+          throw error;
+        }
+        
+        setPillHistory(data || []);
+      } catch (error) {
+        console.error('Error loading pill history:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadUserData();
+  }, []);
   
   // Get days in current month
   const monthStart = startOfMonth(currentMonth);
@@ -28,19 +64,27 @@ export default function Calendar() {
     setCurrentMonth(newMonth);
   };
   
-  // Check if pills were taken on a specific date
+  // Check if pills were taken on a specific date using Supabase data
   const getPillsTakenOnDate = (date) => {
-    return pills.filter(pill => {
-      if (pill.lastTakenDate) {
-        const pillDate = parseISO(pill.lastTakenDate);
-        return isSameDay(pillDate, date);
-      }
-      return false;
+    if (!pillHistory.length) return [];
+    
+    return pillHistory.filter(record => {
+      const pillDate = parseISO(record.taken_at);
+      return isSameDay(pillDate, date);
     });
   };
   
   // Get pills for selected date
   const pillsForSelectedDate = getPillsTakenOnDate(selectedDate);
+  
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={THEME.primary} />
+        <Text style={styles.loadingText}>Loading your pill history...</Text>
+      </View>
+    );
+  }
   
   return (
     <View style={styles.container}>
@@ -105,13 +149,11 @@ export default function Calendar() {
         {pillsForSelectedDate.length > 0 ? (
           <View style={styles.pillsList}>
             <Text style={styles.pillsHeader}>Pills taken:</Text>
-            {pillsForSelectedDate.map(pill => (
-              <View key={pill.id} style={styles.pillItem}>
+            {pillsForSelectedDate.map(record => (
+              <View key={record.id} style={styles.pillItem}>
                 <View style={styles.pillDot} />
-                <Text style={styles.pillName}>{pill.name}</Text>
-                <Text style={styles.pillTime}>
-                  taken at {pill.actualTakenTime || pill.time}
-                </Text>
+                <Text style={styles.pillName}>{record.pill_name}</Text>
+                <Text style={styles.pillTime}>at {record.formatted_time}</Text>
               </View>
             ))}
           </View>
@@ -123,6 +165,7 @@ export default function Calendar() {
   );
 }
 
+// Add this to your existing styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -258,5 +301,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: THEME.white,
     fontStyle: 'italic',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: THEME.text,
   },
 });
