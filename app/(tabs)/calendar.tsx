@@ -45,6 +45,46 @@ export default function Calendar() {
     loadUserData();
   }, []);
   
+  // Refresh pill history when changing months
+  useEffect(() => {
+    if (userId) {
+      const fetchMonthData = async () => {
+        try {
+          setLoading(true);
+          
+          // Get first and last day of the month
+          const firstDay = startOfMonth(currentMonth);
+          const lastDay = endOfMonth(currentMonth);
+          
+          // Format dates for Supabase query
+          const startDate = firstDay.toISOString();
+          const endDate = lastDay.toISOString();
+          
+          // Fetch pill history for the current month
+          const { data, error } = await supabase
+            .from('pill_history')
+            .select('*')
+            .eq('user_id', userId)
+            .gte('taken_at', startDate)
+            .lte('taken_at', endDate)
+            .order('taken_at', { ascending: false });
+            
+          if (error) {
+            throw error;
+          }
+          
+          setPillHistory(data || []);
+        } catch (error) {
+          console.error('Error loading pill history for month:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchMonthData();
+    }
+  }, [currentMonth, userId]);
+  
   // Get days in current month
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -152,8 +192,8 @@ export default function Calendar() {
             {pillsForSelectedDate.map(record => (
               <View key={record.id} style={styles.pillItem}>
                 <View style={styles.pillDot} />
-                <Text style={styles.pillName}>{record.pill_name}</Text>
-                <Text style={styles.pillTime}>at {record.formatted_time}</Text>
+                <Text style={styles.pillName}>{record.pill_name || ''}</Text>
+                <Text style={styles.pillTime}>at {record.formatted_time || ''}</Text>
               </View>
             ))}
           </View>

@@ -37,13 +37,19 @@ export default function PillItem({ pill }: PillItemProps) {
   const handlePress = async () => {
     // If pill is already taken, allow unchecking it
     if (pill.taken) {
-      // Update pill with null lastTakenDate when unchecking
+      // Update pill with null lastTakenDate when unchecking - do this first for immediate UI feedback
       const updatedPill = {
         ...pill,
         taken: false,
         lastTakenDate: null, // Reset the lastTakenDate when unchecking
       }
       updatePill(updatedPill)
+      
+      // Delete the pill history entry from Supabase when unchecking - do this after UI update
+      deletePillHistoryFromSupabase(pill.id).catch(error => 
+        console.error('Background deletion failed:', error)
+      );
+      
       trackVisit(`Pill unchecked: ${pill.name} at ${new Date().toLocaleString()}`, "DaileUseFlow")
       return
     }
@@ -62,12 +68,40 @@ export default function PillItem({ pill }: PillItemProps) {
 
     // Use updatePill instead of togglePillTaken to include the lastTakenDate
     updatePill(updatedPill)
-    console.log(`DEBUG Pill taken: ${pill.name} at ${currentDateTime.toLocaleString()}`, "DaileUseFlow")
     
-    // Save pill history to AsyncStorage
-    savePillHistory(pill.id, pill.name, currentDateTime)
+    // Save pill history to Supabase in the background
+    savePillHistory(pill.id, pill.name, currentDateTime).catch(error => 
+      console.error('Background save failed:', error)
+    );
 
     trackVisit(`Pill taken: ${pill.name} at ${currentDateTime.toLocaleString()}`, "DaileUseFlow")
+  }
+
+  // Function to delete pill history from Supabase
+  const deletePillHistoryFromSupabase = async (pillId: string) => {
+    try {
+      const userId = await getUserId();
+      
+      // Get today's date at the start of the day
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Delete pill history entries for this pill taken today
+      const { error } = await supabase
+        .from('pill_history')
+        .delete()
+        .eq('pill_id', pillId)
+        .eq('user_id', userId)
+        .gte('taken_at', today.toISOString());
+      
+      if (error) {
+        throw error;
+      }
+      
+      console.log(`Pill history deleted from Supabase for pill: ${pillId}`);
+    } catch (error) {
+      console.error('Error deleting pill history from Supabase:', error);
+    }
   }
 
   // Function to save pill history to Supabase
@@ -232,7 +266,7 @@ export default function PillItem({ pill }: PillItemProps) {
 
             {/* Mini calendar */}
             <View style={styles.calendarContainer}>
-              <MiniCalendar lastTakenDate={pill.lastTakenDate} />
+              <MiniCalendar lastTakenDate={pill.lastTakenDate} pillId={pill.id} />
             </View>
           </TouchableOpacity>
         </Animated.View>

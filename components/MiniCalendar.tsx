@@ -1,23 +1,83 @@
-import React from "react"
-import { View, Text, StyleSheet } from "react-native"
+import React, { useEffect, useState } from "react"
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native"
 import { THEME } from "./Theme"
 import { subDays, isSameDay, parseISO } from "date-fns"
+import { supabase } from "../lib/supabase"
+import { getUserId } from "./Analytics/UserID"
 
 interface MiniCalendarProps {
   lastTakenDate?: string
+  pillId?: string // Optional pill ID to filter history
 }
 
-export default function MiniCalendar({ lastTakenDate }: MiniCalendarProps) {
+export default function MiniCalendar({ lastTakenDate, pillId }: MiniCalendarProps) {
   const today = new Date()
+  const [pillHistory, setPillHistory] = useState([])
+  const [loading, setLoading] = useState(true)
   
   // Create array of the last 3 days (today and 2 days before)
   const threeDays = Array.from({ length: 3 }, (_, i) => subDays(today, 2 - i))
+
+  // Fetch pill history from Supabase
+  useEffect(() => {
+    const fetchPillHistory = async () => {
+      try {
+        setLoading(true)
+        const userId = await getUserId()
+        
+        let query = supabase
+          .from('pill_history')
+          .select('*')
+          .eq('user_id', userId)
+        
+        // If pillId is provided, filter by that specific pill
+        if (pillId) {
+          query = query.eq('pill_id', pillId)
+        }
+        
+        const { data, error } = await query
+        
+        if (error) {
+          throw error
+        }
+        
+        setPillHistory(data || [])
+      } catch (error) {
+        console.error('Error fetching pill history for MiniCalendar:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchPillHistory()
+  }, [pillId])
+  
+  // Check if a pill was taken on a specific date
+  const wasPillTakenOnDate = (date) => {
+    if (pillHistory.length === 0) {
+      // Fall back to prop if no history from Supabase yet
+      return lastTakenDate && isSameDay(parseISO(lastTakenDate), date)
+    }
+    
+    return pillHistory.some(record => {
+      const recordDate = parseISO(record.taken_at)
+      return isSameDay(recordDate, date)
+    })
+  }
 
   // Day labels - show only the last 3 days
   const dayLabels = threeDays.map(date => {
     const day = date.getDay()
     return ["S", "M", "T", "W", "T", "F", "S"][day]
   })
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="small" color={THEME.white} />
+      </View>
+    )
+  }
 
   return (
     <View style={styles.container}>
@@ -36,7 +96,7 @@ export default function MiniCalendar({ lastTakenDate }: MiniCalendarProps) {
       <View style={styles.dotsRow}>
         {threeDays.map((date, index) => {
           const isToday = isSameDay(date, today)
-          const wasTaken = lastTakenDate && isSameDay(parseISO(lastTakenDate), date)
+          const wasTaken = wasPillTakenOnDate(date)
 
           return (
             <View key={`dot-${index}`} style={[styles.dotContainer, isToday && styles.todayContainer]}>
@@ -49,6 +109,7 @@ export default function MiniCalendar({ lastTakenDate }: MiniCalendarProps) {
   )
 }
 
+// Keep your existing styles
 const styles = StyleSheet.create({
   container: {
     width: 70, // Increased width for bigger calendar
