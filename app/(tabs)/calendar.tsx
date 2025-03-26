@@ -45,7 +45,7 @@ export default function Calendar() {
     loadUserData();
   }, []);
   
-  // Refresh pill history when changing months
+  // Refresh pill history when changing months or when pills array changes
   useEffect(() => {
     if (userId) {
       const fetchMonthData = async () => {
@@ -83,7 +83,7 @@ export default function Calendar() {
       
       fetchMonthData();
     }
-  }, [currentMonth, userId]);
+  }, [currentMonth, userId, pills]); // Added pills as a dependency to refresh when pills change
   
   // Get days in current month
   const monthStart = startOfMonth(currentMonth);
