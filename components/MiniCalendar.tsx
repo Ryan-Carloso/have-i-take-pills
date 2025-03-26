@@ -8,9 +8,11 @@ import { getUserId } from "./Analytics/UserID"
 interface MiniCalendarProps {
   lastTakenDate?: string
   pillId?: string // Optional pill ID to filter history
+  refreshTrigger?: number // Add this prop to force refresh
+  taken?: boolean // Add this to directly know the pill's current state
 }
 
-export default function MiniCalendar({ lastTakenDate, pillId }: MiniCalendarProps) {
+export default function MiniCalendar({ lastTakenDate, pillId, refreshTrigger = 0, taken = false }: MiniCalendarProps) {
   const today = new Date()
   const [pillHistory, setPillHistory] = useState([])
   const [loading, setLoading] = useState(true)
@@ -50,10 +52,16 @@ export default function MiniCalendar({ lastTakenDate, pillId }: MiniCalendarProp
     }
     
     fetchPillHistory()
-  }, [pillId])
+  }, [pillId, refreshTrigger]) // Add refreshTrigger to dependencies
   
   // Check if a pill was taken on a specific date
   const wasPillTakenOnDate = (date) => {
+    // For today, use the current pill state directly
+    if (isSameDay(date, today)) {
+      return taken;
+    }
+    
+    // For other days, use the pill history
     if (pillHistory.length === 0) {
       // Fall back to prop if no history from Supabase yet
       return lastTakenDate && isSameDay(parseISO(lastTakenDate), date)

@@ -1,5 +1,5 @@
 
-import React, { useRef } from "react"
+import React, { useRef, useState } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native"
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
@@ -32,6 +32,7 @@ interface PillItemProps {
 export default function PillItem({ pill }: PillItemProps) {
   const { togglePillTaken, deletePill, updatePill } = usePills()
   const translateX = useRef(new Animated.Value(0)).current
+  const [refreshCalendar, setRefreshCalendar] = useState(0) // Add this state
 
   // Function to handle pill press
   const handlePress = async () => {
@@ -44,6 +45,9 @@ export default function PillItem({ pill }: PillItemProps) {
         lastTakenDate: null, // Reset the lastTakenDate when unchecking
       }
       updatePill(updatedPill)
+      
+      // Trigger calendar refresh immediately
+      setRefreshCalendar(prev => prev + 1)
       
       // Delete the pill history entry from Supabase when unchecking - do this after UI update
       deletePillHistoryFromSupabase(pill.id).catch(error => 
@@ -68,6 +72,9 @@ export default function PillItem({ pill }: PillItemProps) {
 
     // Use updatePill instead of togglePillTaken to include the lastTakenDate
     updatePill(updatedPill)
+    
+    // Trigger calendar refresh immediately
+    setRefreshCalendar(prev => prev + 1)
     
     // Save pill history to Supabase in the background
     savePillHistory(pill.id, pill.name, currentDateTime).catch(error => 
@@ -205,7 +212,8 @@ export default function PillItem({ pill }: PillItemProps) {
         ]}
       >
         <TouchableOpacity style={styles.deleteButton} onPress={handleDelete} activeOpacity={0.7}>
-          <MaterialIcons name="delete" size={24} color={THEME.white} />
+          <MaterialIcons name="delete" size={20} color={THEME.white} />
+          <Text style={styles.name}>Delete</Text>
         </TouchableOpacity>
       </Animated.View>
 
@@ -266,7 +274,12 @@ export default function PillItem({ pill }: PillItemProps) {
 
             {/* Mini calendar */}
             <View style={styles.calendarContainer}>
-              <MiniCalendar lastTakenDate={pill.lastTakenDate} pillId={pill.id} />
+              <MiniCalendar 
+                lastTakenDate={pill.lastTakenDate} 
+                pillId={pill.id} 
+                refreshTrigger={refreshCalendar}
+                taken={pill.taken} // Pass the current pill state
+              />
             </View>
           </TouchableOpacity>
         </Animated.View>
@@ -297,7 +310,6 @@ const styles = StyleSheet.create({
   },
   pillContainer: {
     width: "100%",
-    borderRadius: 16,
     overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -310,7 +322,6 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 16,
   },
   taken: {
     backgroundColor: THEME.accent,
