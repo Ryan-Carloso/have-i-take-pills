@@ -24,7 +24,6 @@ export default function MiniCalendar({ lastTakenDate, pillId, refreshTrigger = 0
   useEffect(() => {
     const fetchPillHistory = async () => {
       try {
-        setLoading(true)
         const userId = await getUserId()
         
         let query = supabase
@@ -79,13 +78,6 @@ export default function MiniCalendar({ lastTakenDate, pillId, refreshTrigger = 0
     return ["S", "M", "T", "W", "T", "F", "S"][day]
   })
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="small" color={THEME.white} />
-      </View>
-    )
-  }
 
   return (
     <View style={styles.container}>
