@@ -43,10 +43,13 @@ export default function PillItem({ pill }: PillItemProps) {
         ...pill,
         taken: false,
         lastTakenDate: null, // Reset the lastTakenDate when unchecking
+        actualTakenTime: null, // Also reset the actual taken time
       }
+      
+      // Update UI immediately
       updatePill(updatedPill)
       
-      // Trigger calendar refresh immediately
+      // Trigger calendar refresh immediately - AFTER updating the pill state
       setRefreshCalendar(prev => prev + 1)
       
       // Delete the pill history entry from Supabase when unchecking - do this after UI update
@@ -70,10 +73,10 @@ export default function PillItem({ pill }: PillItemProps) {
       }),
     }
 
-    // Use updatePill instead of togglePillTaken to include the lastTakenDate
+    // Update UI first
     updatePill(updatedPill)
     
-    // Trigger calendar refresh immediately
+    // Then trigger calendar refresh
     setRefreshCalendar(prev => prev + 1)
     
     // Save pill history to Supabase in the background
@@ -278,7 +281,7 @@ export default function PillItem({ pill }: PillItemProps) {
                 lastTakenDate={pill.lastTakenDate} 
                 pillId={pill.id} 
                 refreshTrigger={refreshCalendar}
-                taken={pill.taken} // Pass the current pill state
+                taken={pill.taken} 
               />
             </View>
           </TouchableOpacity>
