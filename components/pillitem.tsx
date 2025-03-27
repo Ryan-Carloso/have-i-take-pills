@@ -1,6 +1,7 @@
 
 import React, { useRef } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native"
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
   GestureHandlerRootView,
   PanGestureHandler,
@@ -59,7 +60,47 @@ export default function PillItem({ pill }: PillItemProps) {
 
     // Use updatePill instead of togglePillTaken to include the lastTakenDate
     updatePill(updatedPill)
+    console.log(`DEBUG Pill taken: ${pill.name} at ${currentDateTime.toLocaleString()}`, "DaileUseFlow")
+    
+    // Save pill history to AsyncStorage
+    savePillHistory(pill.id, pill.name, currentDateTime)
+
     trackVisit(`Pill taken: ${pill.name} at ${currentDateTime.toLocaleString()}`, "DaileUseFlow")
+  }
+
+  // Function to save pill history to AsyncStorage
+  const savePillHistory = async (pillId: string, pillName: string, takenDateTime: Date) => {
+    try {
+      // Get existing history from AsyncStorage
+      const historyKey = `pill_history_${pillId}`
+      const existingHistoryJson = await AsyncStorage.getItem(historyKey)
+      
+      // Parse existing history or create new array if none exists
+      const existingHistory = existingHistoryJson ? JSON.parse(existingHistoryJson) : []
+      
+      // Add new entry to history
+      const newEntry = {
+        date: takenDateTime.toISOString(),
+        formattedDate: takenDateTime.toLocaleDateString(),
+        formattedTime: takenDateTime.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      }
+      
+      // Add to beginning of array to keep most recent first
+      const updatedHistory = [newEntry, ...existingHistory]
+      
+      // Limit history to last 30 entries to prevent excessive storage
+      const limitedHistory = updatedHistory.slice(0, 30)
+      
+      // Save updated history back to AsyncStorage
+      await AsyncStorage.setItem(historyKey, JSON.stringify(limitedHistory))
+      
+      console.log(`Pill history saved: ${pillName} taken at ${takenDateTime.toLocaleString()}`)
+    } catch (error) {
+      console.error('Error saving pill history:', error)
+    }
   }
 
   const onGestureEvent = Animated.event<PanGestureHandlerGestureEvent>(
