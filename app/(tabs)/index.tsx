@@ -6,14 +6,26 @@ import AppIntroSlider from 'react-native-app-intro-slider';
 import * as StoreReview from 'expo-store-review';
 import { THEME } from '@/components/Theme';
 import { trackVisit } from '@/components/Analytics/TrackVisit';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'react-native';
+
+
 
 const { width, height } = Dimensions.get('window');
 
+// Define slides with pre-assigned background colors matching each slide's main color theme
 const slides = [
   {
     key: '1',
-    image: require('../../assets/images/onboard01.png'),
+    image: require('../../assets/images/image01.png'),
+    backgroundColor: '#E6E0F8', // Light purple/lavender color like in your image
   },
+  {
+    key: '2',
+    image: require('../../assets/images/image02.png'),
+    backgroundColor: '#E6E0F8', // Light purple/lavender color like in your image
+  },
+  // You can add more slides with their own background colors
 ];
 
 const Onboarding = () => {
@@ -101,7 +113,8 @@ const Onboarding = () => {
   if (onboardingComplete) return null;
 
   const renderItem = ({ item }) => (
-    <View style={styles.slide}>
+    <SafeAreaView style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
+      <StatusBar backgroundColor="#E6E0F8" barStyle="dark-content" />
       {item.image && (
         <View style={styles.imageContainer}>
           <Image
@@ -111,7 +124,7 @@ const Onboarding = () => {
           />
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 
   const renderDoneButton = () => (
@@ -125,6 +138,7 @@ const Onboarding = () => {
   const renderNextButton = renderDoneButton;
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#E6E0F8' }} edges={['top', 'bottom']}>
     <AppIntroSlider
       data={slides}
       renderItem={renderItem}
@@ -137,32 +151,35 @@ const Onboarding = () => {
       showNextButton={true}
       showDoneButton={true}
     />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   slide: {
     flex: 1,
-    backgroundColor: THEME.background,
   },
   imageContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 40,
+    padding: 0, // Remove padding
+    width: '100%',
+    height: '100%',
   },
   image: {
     width: '100%',
     height: '100%',
-    maxHeight: height * 0.7, // Limit image height to 70% of screen height
+    maxHeight: undefined, // Remove maxHeight constraint
   },
   buttonContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+    position: 'absolute', // Position button absolutely
+    bottom: Platform.OS === 'ios' ? 40 : 20,
+    left: 20,
+    right: 20,
   },
   button: {
-    backgroundColor: THEME.cardPill,
+    backgroundColor: '#486591', // Dark blue color for the button like in your image
     borderRadius: 25,
     padding: 15,
     alignItems: 'center',
