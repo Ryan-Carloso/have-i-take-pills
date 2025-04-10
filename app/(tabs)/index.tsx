@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, Dimensions, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppIntroSlider from 'react-native-app-intro-slider';
@@ -12,21 +12,7 @@ const { width, height } = Dimensions.get('window');
 const slides = [
   {
     key: '1',
-    title: "Don't Ever Forget to Take a Supplement",
-    text: "We help you out with your daily dose!",
-    image: require('../../assets/images/iconOnboard.png'),
-  },
-  {
-    key: '2',
-    title: "Set Up Your Vitamins and Supplements",
-    text: "Select the time to receive notifications",
-    image: require('../../assets/images/modalphoto.png'),
-  },
-  {
-    key: '3',
-    title: "Never Forget Your Pills Again",
-    text: "Stay on top of your health routine",
-    image: require('../../assets/images/notify.png'),
+    image: require('../../assets/images/onboard01.png'),
   },
 ];
 
@@ -116,28 +102,27 @@ const Onboarding = () => {
 
   const renderItem = ({ item }) => (
     <View style={styles.slide}>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.text}>{item.text}</Text>
       {item.image && (
-        <View style={[styles.imageContainer, item.key === '2' ? { backgroundColor: THEME.white } : {}]}>
-          <Image source={item.image} style={[styles.image, item.key === '3' ? {    width: width * 0.9, height: height * 0.16} : {  width: width * 0.4 ,height: height * 0.3}]} resizeMode="contain" />
+        <View style={styles.imageContainer}>
+          <Image
+            source={item.image}
+            style={styles.image}
+            resizeMode="contain"
+          />
         </View>
-
       )}
     </View>
   );
 
   const renderDoneButton = () => (
-    <View style={{padding: 10, backgroundColor: THEME.cardPill, borderRadius: 20,}} >
-      <Text style={{margin: 'auto', fontSize: 20, color: THEME.white, fontWeight: '900'}} >Next</Text>
+    <View style={styles.buttonContainer}>
+      <View style={styles.button}>
+        <Text style={styles.buttonText}>Next</Text>
+      </View>
     </View>
   );
 
-  const renderNextButton = () => (
-    <View style={{padding: 10, backgroundColor: THEME.cardPill, borderRadius: 20,}} >
-      <Text style={{margin: 'auto', fontSize: 20, color: THEME.white, fontWeight: '900'}} >Next</Text>
-    </View>
-    );
+  const renderNextButton = renderDoneButton;
 
   return (
     <AppIntroSlider
@@ -149,6 +134,8 @@ const Onboarding = () => {
       activeDotStyle={styles.activeDot}
       renderDoneButton={renderDoneButton}
       renderNextButton={renderNextButton}
+      showNextButton={true}
+      showDoneButton={true}
     />
   );
 };
@@ -156,46 +143,48 @@ const Onboarding = () => {
 const styles = StyleSheet.create({
   slide: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
     backgroundColor: THEME.background,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: THEME.text,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  text: {
-    fontSize: 18,
-    color: THEME.text,
-    textAlign: 'center',
-    marginTop: 10,
+  imageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
   },
   image: {
+    width: '100%',
+    height: '100%',
+    maxHeight: height * 0.7, // Limit image height to 70% of screen height
   },
-  imageContainer: {
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  dot: {
-    backgroundColor: THEME.textSecondary,
-    
-  },
-  activeDot: {
-    backgroundColor: THEME.primary,
-    
+  buttonContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
   },
   button: {
     backgroundColor: THEME.cardPill,
     borderRadius: 25,
+    padding: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
     color: THEME.white,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '900',
+  },
+  dot: {
+    backgroundColor: THEME.textSecondary,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
+  },
+  activeDot: {
+    backgroundColor: THEME.primary,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
 });
 
