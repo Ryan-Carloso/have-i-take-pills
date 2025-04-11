@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  ScrollView,
+  Image
 } from "react-native";
 import {
   initConnection,
@@ -48,8 +48,7 @@ interface ExtendedProduct extends Product {
 
 const productSkus: ProductSkus = {
   ios: {
-    subscription: [],
-    //subscription: ["Monthly_DailyDose"],
+    subscription: ["montly_dailydose"],
     nonConsumable: ["LifeTime_DailyDose"],
   },
   android: {
@@ -141,110 +140,59 @@ export default function Subscriptions() {
     >
       {product.productType === "lifetime" && (
         <View style={styles.bestValueTag}>
-          <Text style={styles.bestValueText}>DEAL</Text>
+          <Text style={styles.bestValueText}>BEST DEAL</Text>
         </View>
       )}
-
-      <View style={styles.planHeader}>
-        <Text style={styles.proPlan}>PRO</Text>
-        <Text style={styles.planType}>
-          {product.productType === "subscription" ? "MONTHLY" : "LIFETIME"}
-        </Text>
-      </View>
       <Text style={styles.price}>{product.localizedPrice}</Text>
       <Text style={styles.billingCycle}>
-        {product.productType === "subscription" ? "Billed monthly" : "Pay once"}
+        {product.productType === "subscription" ? "Monthly" : "One-time purchase"}
       </Text>
     </TouchableOpacity>
   );
 
-  const features = [
-    "Unlimited pill tracking",
-    "Daily notifications for your supplement needs",
-    "Never miss a necessary pill",
-    "unlimited Doses history",
-    "Help an indie dev"
-  ];
-
-  const renderFeature = (feature: string): JSX.Element => (
-    <View key={feature} style={styles.featureItem}>
-      <MaterialCommunityIcons
-        name="check-circle"
-        size={20}
-        color={THEME.success}
-      />
-      <Text style={styles.featureText}>{feature}</Text>
-    </View>
-  );
-
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Choose Your Plan</Text>
-          <Text style={styles.subtitle}>
-            Unlock all features and take control of your health
-          </Text>
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        <Image
+          source={require('../../assets/images/onboard/image01.png')}
+          style={styles.backgroundImage}
+          resizeMode="contain"
+        />
+      </View>
+      
+      <View style={styles.content}>
+        <View style={styles.cardsContainer}>
+          {products.map(renderPlanCard)}
         </View>
-        <View style={{flexDirection: "row-reverse", maxWidth: '90%', margin: 'auto'}} >
-        <TouchableOpacity onPress={() => router.push('/home')} style={styles.closeButton}>
-            <MaterialCommunityIcons name="close" size={28} color={THEME.text} />
-          </TouchableOpacity>
-
-        <View style={styles.featuresContainer}>
-          <Text style={styles.featuresTitle}>What's Included:</Text>
-          {features.map(renderFeature)}
-        </View>
-
-        </View>
-
-        <View style={styles.launchDealContainer} >
-        <MaterialCommunityIcons name="tag" size={24} color={THEME.warning} />
-          <Text style={styles.launchDealText}>
-          🚨 Last Chance! Lifetime Premium at a one-time discount—before it’s gone forever! ⏳🔥
-          </Text>
-        </View>
-
-        {products.length > 0 && (
-          <>
-            <View style={styles.cardsContainer}>
-              {products.map(renderPlanCard)}
-            </View>
-
-            <TouchableOpacity
-              style={[
-                styles.subscribeButton,
-                !selectedPlan && styles.disabledButton,
-              ]}
-              disabled={!selectedPlan || loading}
-              onPress={() => {
-                const selected = products.find(
-                  (p) => p.productId === selectedPlan
-                );
-                if (selected) handlePurchase(selected);
-              }}
-            >
-              {loading ? (
-                <ActivityIndicator color={THEME.white} />
-              ) : (
-                <Text style={styles.subscribeButtonText}>
-                  {selectedPlan ? "Subscribe Now" : "Select a Plan"}
-                </Text>
-              )}
-            </TouchableOpacity>
-          </>
-        )}
-        
+  
         <TouchableOpacity
-        style={styles.RestoreButton}
-        onPress={handleRestore}
-      >
-        <Text style={styles.restoreButtonText}>Restore Purchase</Text>
-      </TouchableOpacity>
-
-      <ButtonPolicy/>
-      </ScrollView>
-    </SafeAreaView>
+          style={[
+            styles.subscribeButton,
+            !selectedPlan && styles.disabledButton,
+          ]}
+          disabled={!selectedPlan || loading}
+          onPress={() => {
+            const selected = products.find(p => p.productId === selectedPlan);
+            if (selected) handlePurchase(selected);
+          }}
+        >
+          {loading ? (
+            <ActivityIndicator color={THEME.white} />
+          ) : (
+            <Text style={styles.subscribeButtonText}>
+              Continue
+            </Text>
+          )}
+        </TouchableOpacity>
+  
+        <TouchableOpacity
+          style={styles.RestoreButton}
+          onPress={handleRestore}
+        >
+          <Text style={styles.restoreButtonText}>Restore Purchase</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
@@ -253,154 +201,93 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: THEME.background,
   },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 24,
+  imageContainer: {
+    height: '60%',
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  header: {
-    alignItems: "center",
-    marginBottom: 32,
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: THEME.text,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: THEME.textSecondary,
-    textAlign: "center",
-  },
-  featuresContainer: {
-    marginBottom: 6,
-  },
-  featuresTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: THEME.text,
-    marginBottom: 16,
+  content: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
   },
   cardsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
     gap: 16,
-    marginBottom: 32,
+    marginVertical: 20,
   },
   planCard: {
-    backgroundColor: THEME.background,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 16,
-    padding: 24,
+    padding: 20,
     width: width * 0.42,
-    alignItems: "center",
+    alignItems: 'center',
     borderWidth: 2,
-    borderColor: "transparent",
-    elevation: 4,
-    shadowColor: THEME.text,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    overflow: "hidden",
+    borderColor: 'transparent',
   },
   selectedCard: {
     borderColor: THEME.primary,
-  },
-  planHeader: {
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  proPlan: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: THEME.primary,
-    marginBottom: 4,
-  },
-  planType: {
-    fontSize: 16,
-    color: THEME.textSecondary,
-    fontWeight: "600",
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
   price: {
     fontSize: 28,
-    fontWeight: "800",
+    fontWeight: '800',
     color: THEME.text,
     marginBottom: 8,
   },
   billingCycle: {
     fontSize: 14,
     color: THEME.textSecondary,
-  },
-  bestValueText: {
-    color: THEME.white,
-    fontSize: 15,
-    fontWeight: "800",
+    textAlign: 'center',
   },
   bestValueTag: {
-    position: "absolute",
-    top: 15,
-    right: -35,
+    position: 'absolute',
+    top: 10,
+    right: -28,
     backgroundColor: THEME.warning,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    transform: [{ rotate: "45deg" }],
-    width: 120,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "visible",
+    transform: [{ rotate: '45deg' }],
+    width: 100,
+    alignItems: 'center',
+  },
+  bestValueText: {
+    color: THEME.white,
+    fontSize: 12,
+    fontWeight: '800',
   },
   subscribeButton: {
     backgroundColor: THEME.primary,
     paddingVertical: 16,
     borderRadius: 30,
-    alignItems: "center",
-    marginHorizontal: 24,
-  },
-  RestoreButton: {
-    backgroundColor: THEME.cardPill,
-    paddingVertical: 6,
-    borderRadius: 30,
-    alignItems: "center",
-    marginHorizontal: 24,
-    marginTop: 20
-  },
-  disabledButton: {
-    backgroundColor: THEME.textSecondary,
-    opacity: 0.7,
+    alignItems: 'center',
+    marginBottom: 12,
   },
   subscribeButtonText: {
     color: THEME.white,
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '700',
+  },
+  RestoreButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingVertical: 12,
+    borderRadius: 30,
+    alignItems: 'center',
   },
   restoreButtonText: {
     color: THEME.white,
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
   },
-  featureItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  featureText: {
-    marginLeft: 12,
-    fontSize: 16,
-    color: THEME.text,
-  },
-  launchDealContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF9C4',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 14,
-    marginTop: 6,
-  },
-  launchDealText: {
-    marginLeft: 8,
-    color: THEME.warning,
-    fontSize: 14,
-    fontWeight: '600',
-    flex: 1,
+  disabledButton: {
+    backgroundColor: THEME.textSecondary,
+    opacity: 0.7,
   },
 });

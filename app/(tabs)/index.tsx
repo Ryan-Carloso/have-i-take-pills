@@ -41,7 +41,7 @@ const Onboarding = () => {
           setOnboardingComplete(complete === 'true');
         }
         if (__DEV__) {
-          const complete = await AsyncStorage.getItem('onboardingComplete1');
+          const complete = await AsyncStorage.getItem('onboardingComplete');
           setOnboardingComplete(complete === 'true');
         }
         
