@@ -6,9 +6,6 @@ import AppIntroSlider from 'react-native-app-intro-slider';
 import * as StoreReview from 'expo-store-review';
 import { THEME } from '@/components/Theme';
 import { trackVisit } from '@/components/Analytics/TrackVisit';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'react-native';
-
 
 
 const { width, height } = Dimensions.get('window');
@@ -17,15 +14,19 @@ const { width, height } = Dimensions.get('window');
 const slides = [
   {
     key: '1',
-    image: require('../../assets/images/image01.png'),
-    backgroundColor: '#E6E0F8', // Light purple/lavender color like in your image
+    image: require('../../assets/images/onboard/image01.png'),
+    backgroundColor: '#fff', // Light purple/lavender color like in your image
   },
   {
     key: '2',
-    image: require('../../assets/images/image02.png'),
-    backgroundColor: '#E6E0F8', // Light purple/lavender color like in your image
+    image: require('../../assets/images/onboard/image02.png'),
+    backgroundColor: '#FFF', // Light purple/lavender color like in your image
   },
-  // You can add more slides with their own background colors
+  {
+    key: '3',
+    image: require('../../assets/images/onboard/image03.png'),
+    backgroundColor: '#FFF', // Light purple/lavender color like in your image
+  },
 ];
 
 const Onboarding = () => {
@@ -113,8 +114,7 @@ const Onboarding = () => {
   if (onboardingComplete) return null;
 
   const renderItem = ({ item }) => (
-    <SafeAreaView style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
-      <StatusBar backgroundColor="#E6E0F8" barStyle="dark-content" />
+    <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
       {item.image && (
         <View style={styles.imageContainer}>
           <Image
@@ -124,7 +124,7 @@ const Onboarding = () => {
           />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 
   const renderDoneButton = () => (
@@ -138,7 +138,6 @@ const Onboarding = () => {
   const renderNextButton = renderDoneButton;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#E6E0F8' }} edges={['top', 'bottom']}>
     <AppIntroSlider
       data={slides}
       renderItem={renderItem}
@@ -151,7 +150,6 @@ const Onboarding = () => {
       showNextButton={true}
       showDoneButton={true}
     />
-    </SafeAreaView>
   );
 };
 
