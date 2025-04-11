@@ -9,8 +9,10 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  ScrollView,
   Image
 } from "react-native";
+
 import {
   initConnection,
   requestSubscription,
@@ -58,11 +60,14 @@ const productSkus: ProductSkus = {
 };
 
 export default function Subscriptions() {
+  
   const { connected } = useIAP();
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<ExtendedProduct[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
+  const windowWidth = Dimensions.get('window').width;
+  const windowHeight = Dimensions.get('window').height;
   useEffect(() => {
     trackVisit("Open Subscriptions Page", "SubsFlow",);
     const setup = async () => {
@@ -151,90 +156,104 @@ export default function Subscriptions() {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.imageContainer}>
-        <Image
-          source={require('../../assets/images/onboard/image01.png')}
-          style={styles.backgroundImage}
-          resizeMode="contain"
-        />
-      </View>
-      
-      <View style={styles.content}>
-        <View style={styles.cardsContainer}>
-          {products.map(renderPlanCard)}
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.imageContainer}>
+          <Image
+            source={require('../../assets/images/onboard/paywall.png')}
+            style={styles.backgroundImage}
+          />
         </View>
-  
-        <TouchableOpacity
-          style={[
-            styles.subscribeButton,
-            !selectedPlan && styles.disabledButton,
-          ]}
-          disabled={!selectedPlan || loading}
-          onPress={() => {
-            const selected = products.find(p => p.productId === selectedPlan);
-            if (selected) handlePurchase(selected);
-          }}
-        >
-          {loading ? (
-            <ActivityIndicator color={THEME.white} />
-          ) : (
-            <Text style={styles.subscribeButtonText}>
-              Continue
-            </Text>
-          )}
-        </TouchableOpacity>
-  
-        <TouchableOpacity
-          style={styles.RestoreButton}
-          onPress={handleRestore}
-        >
-          <Text style={styles.restoreButtonText}>Restore Purchase</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+        <View style={styles.content}>
+          <View style={styles.cardsContainer}>
+            {products.map(renderPlanCard)}
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.subscribeButton,
+              !selectedPlan && styles.disabledButton,
+            ]}
+            disabled={!selectedPlan || loading}
+            onPress={() => {
+              const selected = products.find(p => p.productId === selectedPlan);
+              if (selected) handlePurchase(selected);
+            }}
+          >
+            {loading ? (
+              <ActivityIndicator color={THEME.white} />
+            ) : (
+              <Text style={styles.subscribeButtonText}>
+                Continue
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.RestoreButton}
+            onPress={handleRestore}
+          >
+            <Text style={styles.restoreButtonText}>Restore Purchase</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.background,
+    backgroundColor: '#fff',
+  },
+  scrollContainer: {
+    flexGrow: 1,
   },
   imageContainer: {
-    height: '60%',
-    width: '100%',
-    justifyContent: 'center',
+    paddingTop: 10,
+    height: Dimensions.get('window').height * 0.6,
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
+  subscribeButtonText: {
+    color: THEME.white,
+    fontSize: 18,
+    fontWeight: '700',
+  },
   backgroundImage: {
-    width: '100%',
-    height: '100%',
+    width: '90%',
+    height: '90%',
+    resizeMode: 'contain',
   },
   content: {
-    flex: 1,
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+    flex: 1,
+    justifyContent: 'space-between', // Added to distribute space
   },
   cardsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 16,
-    marginVertical: 20,
+    marginBottom: 20,
+    marginTop: -20, // Added to reduce space
   },
   planCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: THEME.background,
     borderRadius: 16,
-    padding: 20,
+    padding: 24,
     width: width * 0.42,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: "transparent",
+    elevation: 4,
+    shadowColor: THEME.text,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    overflow: "hidden",
   },
   selectedCard: {
     borderColor: THEME.primary,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
   price: {
     fontSize: 28,
@@ -248,20 +267,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   bestValueTag: {
-    position: 'absolute',
-    top: 10,
-    right: -28,
+    position: "absolute",
+    top: 15,
+    right: -35,
     backgroundColor: THEME.warning,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    transform: [{ rotate: '45deg' }],
-    width: 100,
-    alignItems: 'center',
+    transform: [{ rotate: "45deg" }],
+    width: 120,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "visible",
   },
   bestValueText: {
     color: THEME.white,
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 13,
+    fontWeight: "800",
   },
   subscribeButton: {
     backgroundColor: THEME.primary,
@@ -269,17 +290,15 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: 'center',
     marginBottom: 12,
-  },
-  subscribeButtonText: {
-    color: THEME.white,
-    fontSize: 18,
-    fontWeight: '700',
+    width: '100%', // Added for consistency
   },
   RestoreButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingVertical: 12,
     borderRadius: 30,
     alignItems: 'center',
+    width: '100%', // Added for consistency
+    marginTop: 8, // Added some spacing
   },
   restoreButtonText: {
     color: THEME.white,
