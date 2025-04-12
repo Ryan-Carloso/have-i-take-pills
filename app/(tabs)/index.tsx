@@ -29,86 +29,52 @@ const slides = [
   },
 ];
 
+// Near the top of the file, after imports
+const getRandomVariant = () => Math.random() < 0.5 ? 'A' : 'B';
+
+const getSlideImages = (variant: string) => [
+  {
+    key: '1',
+    image: variant === 'A' 
+      ? require('../../assets/images/onboard/image01.png')
+      : { uri: 'https://tlaihqorrptgeflxarvm.supabase.co/storage/v1/object/public/testes-onboard/image01.png' },
+    backgroundColor: '#fff',
+  },
+  {
+    key: '2',
+    image: variant === 'A' 
+      ? require('../../assets/images/onboard/image02.png')
+      : { uri: 'https://tlaihqorrptgeflxarvm.supabase.co/storage/v1/object/public/testes-onboard/image02.png' },
+    backgroundColor: '#FFF',
+  },
+  {
+    key: '3',
+    image: variant === 'A' 
+      ? require('../../assets/images/onboard/image03.png')
+      : { uri: 'https://tlaihqorrptgeflxarvm.supabase.co/storage/v1/object/public/testes-onboard/image03.png' },
+    backgroundColor: '#FFF',
+  },
+];
+
 const Onboarding = () => {
   const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [variant] = useState(getRandomVariant());
+  const slides = getSlideImages(variant);
   const router = useRouter();
 
-  // Add this new function to handle slide changes
+  
+  // Add this useEffect to track which variant the user sees
+  useEffect(() => {
+    trackTest(`Started Onboarding - Variant ${variant}`, 'OnboardFlow');
+  }, [variant]);
+
   const handleSlideChange = (index: number) => {
-    trackTest(`Viewing Onboarding Slide ${index + 1}`, 'OnboardFlow');
+    trackTest(`Viewing Onboarding Slide ${index + 1} - Variant ${variant}`, 'OnboardFlow');
   };
-
-  useEffect(() => {
-    const checkOnboarding = async () => {
-      try {
-        if (!__DEV__) {
-          const complete = await AsyncStorage.getItem('onboardingComplete');
-          setOnboardingComplete(complete === 'true');
-        }
-        if (__DEV__) {
-          const complete = await AsyncStorage.getItem('onboardingComplete1');
-          setOnboardingComplete(complete === 'true');
-        }
-        
-        // Track app visits
-        await trackAppVisits();
-      } catch (error) {
-        console.error("Error checking onboarding status:", error);
-      }
-    };
-    
-    // Function to track app visits
-    const trackAppVisits = async () => {
-      try {
-        // Get current visit count
-        const visitsString = await AsyncStorage.getItem('appVisitCount');
-        let visits = visitsString ? parseInt(visitsString) : 0;
-        
-        // Increment visit count
-        visits += 1;
-        
-        // Request review at specific milestones
-        if (visits === 3 || visits === 5 || visits === 10 || visits === 15) {
-          console.log(`User has opened the app for the ${visits}${getOrdinalSuffix(visits)} time!`);
-          
-          // Check if device supports review requests
-          const isAvailable = await StoreReview.isAvailableAsync();
-          if (isAvailable) {
-            // Request review
-            await StoreReview.requestReview();
-          }
-        }
-        
-        // Save updated count
-        await AsyncStorage.setItem('appVisitCount', visits.toString());
-      } catch (error) {
-        console.error("Error tracking app visits:", error);
-      }
-    };
-    
-    // Helper function to get ordinal suffix (1st, 2nd, 3rd, etc.)
-    const getOrdinalSuffix = (n) => {
-      if (n > 3 && n < 21) return 'th';
-      switch (n % 10) {
-        case 1: return 'st';
-        case 2: return 'nd';
-        case 3: return 'rd';
-        default: return 'th';
-      }
-    };
-    
-    checkOnboarding();
-  }, []);
-
-  useEffect(() => {
-    if (onboardingComplete) {
-      router.push('/home');
-    }
-  }, [onboardingComplete, router]);
 
   const handleDone = async () => {
     try {
-      trackTest('Finish Onboarding, sending for paywall', 'OnboardFlow');
+      trackTest(`Finish Onboarding - Variant ${variant}`, 'OnboardFlow');
       await AsyncStorage.setItem('onboardingComplete', 'true');
       router.push('/PaywallOnBoard');
     } catch (error) {
