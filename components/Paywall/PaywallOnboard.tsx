@@ -27,7 +27,7 @@ import { THEME } from "@/components/Theme";
 import { router } from "expo-router";
 import { handleRestore } from "./RestoreButton";
 import ButtonPolicy from "./ButtonPolicy";
-import { trackVisit } from "../Analytics/TrackVisit";
+import { trackTest } from "../Analytics/TrackTest";
 
 
 const { width } = Dimensions.get("window");
@@ -69,7 +69,7 @@ export default function Subscriptions() {
   const windowWidth = Dimensions.get('window').width;
   const windowHeight = Dimensions.get('window').height;
   useEffect(() => {
-    trackVisit("Open Subscriptions Page", "SubsFlow",);
+    trackTest("Open Subscriptions Page", "SubsFlow",);
     const setup = async () => {
       try {
         await initConnection();
@@ -123,11 +123,11 @@ export default function Subscriptions() {
         });
       }
       Alert.alert("Success", "Thank you for your purchase!");
-      trackVisit(`Just Bought ${product.title}`, "SubsFlow",);
+      trackTest(`Just Bought ${product.title}`, "SubsFlow",);
       // Navigate to the review page after successful purchase
       router.push("/reviewPage");
     } catch (err) {
-      trackVisit(`Cancel Buying ${product.title}`, "SubsFlow",);
+      trackTest(`Cancel Buying ${product.title}`, "SubsFlow",);
       router.push("/reviewPage");
     } finally {
       setLoading(false);

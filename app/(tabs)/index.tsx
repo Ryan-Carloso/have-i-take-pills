@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import * as StoreReview from 'expo-store-review';
 import { THEME } from '@/components/Theme';
-import { trackVisit } from '@/components/Analytics/TrackVisit';
+import { trackTest } from '@/components/Analytics/TrackTest';
 
 
 const { width, height } = Dimensions.get('window');
@@ -32,6 +32,11 @@ const slides = [
 const Onboarding = () => {
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const router = useRouter();
+
+  // Add this new function to handle slide changes
+  const handleSlideChange = (index: number) => {
+    trackTest(`Viewing Onboarding Slide ${index + 1}`, 'OnboardFlow');
+  };
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -103,7 +108,7 @@ const Onboarding = () => {
 
   const handleDone = async () => {
     try {
-      trackVisit('Finish Onboarding, sending for paywall', 'OnboardFlow');
+      trackTest('Finish Onboarding, sending for paywall', 'OnboardFlow');
       await AsyncStorage.setItem('onboardingComplete', 'true');
       router.push('/PaywallOnBoard');
     } catch (error) {
@@ -149,6 +154,7 @@ const Onboarding = () => {
       renderNextButton={renderNextButton}
       showNextButton={true}
       showDoneButton={true}
+      onSlideChange={handleSlideChange} // Add this new prop
     />
   );
 };
