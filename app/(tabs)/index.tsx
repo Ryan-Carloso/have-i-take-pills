@@ -36,7 +36,7 @@ const Onboarding = () => {
   useEffect(() => {
     const fetchSlides = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/onboard'); // <- Substitui com IP real ou URL da API
+        const res = await fetch('https://getimages-testes.vercel.app/api/onboard/dailydose'); 
         const data = await res.json();
 
         if (!data?.images || data.images.length !== 3) {
