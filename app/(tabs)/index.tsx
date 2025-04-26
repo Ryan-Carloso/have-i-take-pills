@@ -27,15 +27,37 @@ const fallbackSlides = [
   },
 ];
 
+// Função para pré-carregar dados do PaywallOnBoard
+const preloadPaywallData = async () => {
+  try {
+    // Pré-carrega os dados de preços ou outras informações necessárias
+    const response = await fetch('https://getimages-testes.vercel.app/api/paywall/info');
+    const data = await response.json();
+    
+    // Armazena os dados no AsyncStorage para uso posterior
+    await AsyncStorage.setItem('paywallData', JSON.stringify(data));
+    console.log('Dados do paywall pré-carregados com sucesso');
+    return true;
+  } catch (error) {
+    console.warn('Erro ao pré-carregar dados do paywall:', error);
+    return false;
+  }
+};
+
 const Onboarding = () => {
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [paywallDataLoaded, setPaywallDataLoaded] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchSlides = async () => {
+    const fetchData = async () => {
       try {
+        // Inicia o pré-carregamento dos dados do paywall em paralelo
+        const paywallPromise = preloadPaywallData();
+        
+        // Busca os slides do onboarding
         const res = await fetch('https://getimages-testes.vercel.app/api/onboard/dailydose'); 
         const data = await res.json();
 
@@ -51,26 +73,61 @@ const Onboarding = () => {
 
         setSlides(formattedSlides);
         trackTest('Started Onboarding - API version', 'OnboardFlow');
+        
+        // Verifica se os dados do paywall foram carregados
+        const paywallLoaded = await paywallPromise;
+        setPaywallDataLoaded(paywallLoaded);
       } catch (error) {
         console.warn('Erro ao buscar imagens do onboard. Usando fallback local:', error);
         setSlides(fallbackSlides);
         trackTest('Started Onboarding - Fallback version', 'OnboardFlow');
+        
+        // Tenta carregar os dados do paywall mesmo se houver erro nos slides
+        const paywallLoaded = await preloadPaywallData();
+        setPaywallDataLoaded(paywallLoaded);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSlides();
+    fetchData();
+  }, []);
+
+  // Também podemos pré-carregar as imagens do PaywallOnBoard
+  useEffect(() => {
+    const preloadPaywallImages = async () => {
+      try {
+        // Pré-carrega as imagens do paywall
+        Image.prefetch('https://tlaihqorrptgeflxarvm.supabase.co/storage/v1/object/public/paywall/background.png');
+        Image.prefetch('https://tlaihqorrptgeflxarvm.supabase.co/storage/v1/object/public/paywall/icon.png');
+        console.log('Imagens do paywall pré-carregadas com sucesso');
+      } catch (error) {
+        console.warn('Erro ao pré-carregar imagens do paywall:', error);
+      }
+    };
+
+    preloadPaywallImages();
   }, []);
 
   const handleSlideChange = (index: number) => {
     trackTest(`Viewing Onboarding Slide ${index + 1}`, 'OnboardFlow');
+    
+    // No penúltimo slide, garantimos que os dados do paywall estejam carregados
+    if (index === slides.length - 2 && !paywallDataLoaded) {
+      preloadPaywallData().then(success => setPaywallDataLoaded(success));
+    }
   };
 
   const handleDone = async () => {
     try {
       trackTest('Finish Onboarding', 'OnboardFlow');
       await AsyncStorage.setItem('onboardingComplete', 'true');
+      
+      // Verifica se os dados do paywall foram carregados antes de navegar
+      if (!paywallDataLoaded) {
+        await preloadPaywallData();
+      }
+      
       router.push('/PaywallOnBoard');
     } catch (error) {
       console.error('Erro ao salvar status do onboarding:', error);
