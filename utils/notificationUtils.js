@@ -23,23 +23,28 @@ export async function requestNotificationPermissions() {
   return finalStatus === 'granted';
 }
 
-// Agenda uma notificação
 export async function schedulePillNotification(pillName: string) {
   try {
-    // Schedule notification directly with Expo's API using a date trigger
+    // Create a Date object for today at 12:10
+    const now = new Date();
+    const scheduledTime = new Date();
+    scheduledTime.setHours(12, 10, 0, 0); // Set to 12:10:00.000
+    
+    // If it's already past 12:10 today, schedule for tomorrow
+    if (now > scheduledTime) {
+      scheduledTime.setDate(scheduledTime.getDate() + 1);
+    }
+
+    const trigger = { hour: 12, minute: 10, repeats: true };
+    
     const identifier = await Notifications.scheduleNotificationAsync({
       content: {
         title: 'Pill Reminder',
         body: `Time to take your ${pillName}!`,
         sound: true,
       },
-      trigger: {
-        hour: 12,
-        minute: 10,
-        repeats: true,  // This makes it repeat daily
-      },
+      trigger,
     });
-    
     console.log('Notification scheduled with ID:', identifier);
     return identifier;
   } catch (error) {

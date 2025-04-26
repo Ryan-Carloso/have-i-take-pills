@@ -54,34 +54,35 @@ export default function AddPillModal(): JSX.Element {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleAddPill = async (): Promise<void> => {
-    if (validateForm()) {
-      try {
-        const permissionGranted = await requestNotificationPermissions();
-        let notificationId;
-        let dailyReminderId;
+  // In your handleAddPill function, just call schedulePillNotification with the pill name
+const handleAddPill = async (): Promise<void> => {
+  if (validateForm()) {
+    try {
+      const permissionGranted = await requestNotificationPermissions();
+      let notificationId;
+      let dailyReminderId;
 
-        if (permissionGranted) {
-          // Schedule specific pill notification
-          notificationId = await schedulePillNotification(name);  // Removemos o parâmetro time
-        
-        }
-
-        const newPill: Pill = {
-          id: Date.now().toString(),
-          name,
-          time: "12:10",  // Horário fixo
-          taken: false,
-          dailyReminderId,
-        };
-
-        addPill(newPill);
-        router.push('/home');
-      } catch (error) {
-        console.error("Error adding pill:", error);
+      if (permissionGranted) {
+        // Just pass the pill name, the function will use the fixed 12:10 time
+        notificationId = await schedulePillNotification(name);
       }
+
+      const newPill: Pill = {
+        id: Date.now().toString(),
+        name,
+        time: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        taken: false,
+        notificationId,
+        dailyReminderId,
+      };
+
+      addPill(newPill);
+      router.push('/home');
+    } catch (error) {
+      console.error("Error adding pill:", error);
     }
-  };
+  }
+};
 
   const openTimePicker = () => {
     setShowTimePicker(true)
