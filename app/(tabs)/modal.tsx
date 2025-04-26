@@ -63,29 +63,15 @@ export default function AddPillModal(): JSX.Element {
 
         if (permissionGranted) {
           // Schedule specific pill notification
-          notificationId = await schedulePillNotification(name, time);
-          
-          // Schedule daily reminder at local 12:00 PM
-          dailyReminderId = await Notifications.scheduleNotificationAsync({
-            content: {
-              title: "Fuel Your Gains – Supplement Time!",  
-              body: "Stay on track—take your daily supplements for peak performance!",
-              sound: true,
-            },
-            trigger: {
-              hour: 18,
-              minute: 1,
-              repeats: true,
-            },
-          });
+          notificationId = await schedulePillNotification(name);  // Removemos o parâmetro time
+        
         }
 
         const newPill: Pill = {
           id: Date.now().toString(),
           name,
-          time: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          time: "12:10",  // Horário fixo
           taken: false,
-          notificationId,
           dailyReminderId,
         };
 

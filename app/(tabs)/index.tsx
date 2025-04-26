@@ -51,49 +51,68 @@ const Onboarding = () => {
   const [paywallDataLoaded, setPaywallDataLoaded] = useState(false);
   const router = useRouter();
 
+  // Verificar se o onboarding já foi concluído
   useEffect(() => {
-    const fetchData = async () => {
+    const checkOnboardingStatus = async () => {
       try {
-        // Inicia o pré-carregamento dos dados do paywall em paralelo
-        const paywallPromise = preloadPaywallData();
+        const value = await AsyncStorage.getItem('onboardingComplete');
         
-        // Busca os slides do onboarding
-        const res = await fetch('https://getimages-testes.vercel.app/api/onboard/dailydose'); 
-        const data = await res.json();
-
-        if (!data?.images || data.images.length !== 3) {
-          throw new Error('API returned invalid images');
+        if (value === 'true') {
+          // Se o onboarding já foi concluído, redirecionar para PaywallOnBoard
+          setOnboardingComplete(true);
+          router.push('/home');
+          return; // Sai da função para não carregar os slides desnecessariamente
         }
-
-        const formattedSlides = data.images.map((imageUrl: string, index: number) => ({
-          key: `${index + 1}`,
-          image: { uri: imageUrl },
-          backgroundColor: '#FFF',
-        }));
-
-        setSlides(formattedSlides);
-        trackTest('Started Onboarding - API version', 'OnboardFlow');
         
-        // Verifica se os dados do paywall foram carregados
-        const paywallLoaded = await paywallPromise;
-        setPaywallDataLoaded(paywallLoaded);
+        // Se chegou aqui, o onboarding não foi concluído, então carrega os slides
+        fetchData();
       } catch (error) {
-        console.warn('Erro ao buscar imagens do onboard. Usando fallback local:', error);
-        setSlides(fallbackSlides);
-        trackTest('Started Onboarding - Fallback version', 'OnboardFlow');
-        
-        // Tenta carregar os dados do paywall mesmo se houver erro nos slides
-        const paywallLoaded = await preloadPaywallData();
-        setPaywallDataLoaded(paywallLoaded);
-      } finally {
-        setLoading(false);
+        console.error('Erro ao verificar status do onboarding:', error);
+        fetchData(); // Em caso de erro, carrega os slides por segurança
       }
     };
 
-    fetchData();
-  }, []);
+    checkOnboardingStatus();
+  }, [router]);
 
-  // Também podemos pré-carregar as imagens do PaywallOnBoard
+  const fetchData = async () => {
+    try {
+      // Inicia o pré-carregamento dos dados do paywall em paralelo
+      const paywallPromise = preloadPaywallData();
+      
+      // Busca os slides do onboarding
+      const res = await fetch('https://getimages-testes.vercel.app/api/onboard/dailydose'); 
+      const data = await res.json();
+
+      if (!data?.images || data.images.length !== 3) {
+        throw new Error('API returned invalid images');
+      }
+
+      const formattedSlides = data.images.map((imageUrl: string, index: number) => ({
+        key: `${index + 1}`,
+        image: { uri: imageUrl },
+        backgroundColor: '#FFF',
+      }));
+
+      setSlides(formattedSlides);
+      trackTest('Started Onboarding - API version', 'OnboardFlow');
+      
+      // Verifica se os dados do paywall foram carregados
+      const paywallLoaded = await paywallPromise;
+      setPaywallDataLoaded(paywallLoaded);
+    } catch (error) {
+      console.warn('Erro ao buscar imagens do onboard. Usando fallback local:', error);
+      setSlides(fallbackSlides);
+      trackTest('Started Onboarding - Fallback version', 'OnboardFlow');
+      
+      // Tenta carregar os dados do paywall mesmo se houver erro nos slides
+      const paywallLoaded = await preloadPaywallData();
+      setPaywallDataLoaded(paywallLoaded);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const preloadPaywallImages = async () => {
       try {
@@ -157,6 +176,11 @@ const Onboarding = () => {
   );
 
   const renderNextButton = renderDoneButton;
+
+  // Se o onboarding já foi concluído, não renderiza nada (já redirecionou)
+  if (onboardingComplete) {
+    return null;
+  }
 
   if (loading || slides.length === 0) {
     return (
