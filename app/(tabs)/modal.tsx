@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { View, StyleSheet, Text, ScrollView, SafeAreaView, Animated, Modal, TouchableOpacity } from "react-native"
 import { TextInput, Button } from "react-native-paper"
 import DateTimePicker from "@react-native-community/datetimepicker"
 import { useRouter } from "expo-router"
 import { usePills } from "../../contexts/PillContext"
-import { requestNotificationPermissions, schedulePillNotification } from "../../utils/notificationUtils"
+import { requestNotificationPermissions, registerForPushNotificationsAsync } from "../../utils/notificationUtils"
 import * as Notifications from "expo-notifications"
 import { THEME } from "@/components/Theme"
 import InsightoPage from "../../components/insigh.to/insigh.toPage"
@@ -29,6 +29,17 @@ Notifications.setNotificationHandler({
 })
 
 export default function AddPillModal(): JSX.Element {
+  useEffect(() => {
+    async function setupPush() {
+      const token = await registerForPushNotificationsAsync();
+      if (token) {
+        // Aqui você pode enviar o token para seu backend (Supabase, Firebase, etc)
+        console.log('Expo Push Token:', token);
+      }
+    }
+
+    setupPush();
+  }, []);
   const [name, setName] = useState<string>("")
   const [time, setTime] = useState<Date>(new Date())
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
@@ -55,34 +66,25 @@ export default function AddPillModal(): JSX.Element {
   }
 
   // In your handleAddPill function, just call schedulePillNotification with the pill name
-const handleAddPill = async (): Promise<void> => {
-  if (validateForm()) {
-    try {
-      const permissionGranted = await requestNotificationPermissions();
-      let notificationId;
-      let dailyReminderId;
-
-      if (permissionGranted) {
-        // Just pass the pill name, the function will use the fixed 12:10 time
-        notificationId = await schedulePillNotification(name);
+  const handleAddPill = async (): Promise<void> => {
+    if (validateForm()) {
+      try {
+        // Já pediu permissão no useEffect, então aqui só adiciona a pílula
+        const newPill: Pill = {
+          id: Date.now().toString(),
+          name,
+          time: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          taken: false,
+        };
+  
+        addPill(newPill);
+        router.push('/home');
+      } catch (error) {
+        console.error("Error adding pill:", error);
       }
-
-      const newPill: Pill = {
-        id: Date.now().toString(),
-        name,
-        time: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        taken: false,
-        notificationId,
-        dailyReminderId,
-      };
-
-      addPill(newPill);
-      router.push('/home');
-    } catch (error) {
-      console.error("Error adding pill:", error);
     }
-  }
-};
+  };
+  
 
   const openTimePicker = () => {
     setShowTimePicker(true)
