@@ -48,7 +48,7 @@ export const PillProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (pill.taken && pill.lastTakenDate) {
           const lastTakenDate = new Date(pill.lastTakenDate);
           const today = new Date();
-          
+           
           // Compare only the date parts (year, month, day)
           const lastTakenDay = new Date(
             lastTakenDate.getFullYear(),
