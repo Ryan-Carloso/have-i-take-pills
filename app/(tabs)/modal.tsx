@@ -77,7 +77,7 @@ export default function AddPillModal(): JSX.Element {
     if (validateForm()) {
       try {
         const newPill: Pill = {
-          id: Math.random().toString(),
+          id: "111test",
           name,
           time: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           taken: false,
@@ -90,8 +90,6 @@ export default function AddPillModal(): JSX.Element {
           .insert([
             {
               name: newPill.name,
-              time: newPill.time,
-              taken: newPill.taken,
               user_id: userId,
               created_at: new Date().toISOString(),
               scheduled_time: time.toISOString()
