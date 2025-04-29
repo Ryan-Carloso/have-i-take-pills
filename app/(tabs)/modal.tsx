@@ -10,6 +10,8 @@ import { requestNotificationPermissions, registerForPushNotificationsAsync } fro
 import * as Notifications from "expo-notifications"
 import { THEME } from "@/components/Theme"
 import InsightoPage from "../../components/insigh.to/insigh.toPage"
+import { createClient } from '@supabase/supabase-js'
+import { getUserId } from "../../components/Analytics/UserID";
 
 interface Pill {
   id: string;
@@ -33,7 +35,6 @@ export default function AddPillModal(): JSX.Element {
     async function setupPush() {
       const token = await registerForPushNotificationsAsync();
       if (token) {
-        // Aqui você pode enviar o token para seu backend (Supabase, Firebase, etc)
         console.log('Expo Push Token:', token);
       }
     }
@@ -65,11 +66,9 @@ export default function AddPillModal(): JSX.Element {
     return Object.keys(newErrors).length === 0
   }
 
-  // In your handleAddPill function, just call schedulePillNotification with the pill name
   const handleAddPill = async (): Promise<void> => {
     if (validateForm()) {
       try {
-        // Já pediu permissão no useEffect, então aqui só adiciona a pílula
         const newPill: Pill = {
           id: Date.now().toString(),
           name,
@@ -77,10 +76,56 @@ export default function AddPillModal(): JSX.Element {
           taken: false,
         };
   
+        // Obtendo o ID do usuário para associar ao registro
+        const userId = await getUserId();
+  
+        // Enviando para o Supabase com informações adicionais
+        const { data, error } = await supabase
+          .from('pills_history')
+          .insert([
+            {
+              name: newPill.name,
+              time: newPill.time,
+              taken: newPill.taken,
+              user_id: userId,
+              created_at: new Date().toISOString(),
+              scheduled_time: time.toISOString()
+            }
+          ])
+          .select();
+  
+        if (error) {
+          console.error('Erro ao salvar no Supabase:', error);
+          return;
+        }
+  
+        // Se salvou com sucesso no Supabase, atualiza o ID local com o ID do banco
+        if (data && data[0]) {
+          newPill.id = data[0].id;
+        }
+  
+        // Configurando notificações após salvar no Supabase
+        const permissionGranted = await requestNotificationPermissions();
+        if (permissionGranted) {
+          newPill.notificationId = await schedulePillNotification(name, time);
+          newPill.dailyReminderId = await Notifications.scheduleNotificationAsync({
+            content: {
+              title: "Hora do seu medicamento!",
+              body: `Está na hora de tomar ${name}`,
+              sound: true,
+            },
+            trigger: {
+              hour: time.getHours(),
+              minute: time.getMinutes(),
+              repeats: true,
+            },
+          });
+        }
+  
         addPill(newPill);
         router.push('/home');
       } catch (error) {
-        console.error("Error adding pill:", error);
+        console.error("Erro ao adicionar pílula:", error);
       }
     }
   };
@@ -334,4 +379,5 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 })
+
 
