@@ -42,7 +42,7 @@ export default function AddPillModal(): JSX.Element {
     setupPush();
   }, []);
 
-  const SUPABASE_URL = 'http://supabasekong-xsow0c0oock8wooo8cg40o0c.82.29.190.97.sslip.io';
+  const SUPABASE_URL = 'https://db.freesupabase.shop';
   const SERVICE_ROLE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc0NTkyMjQ4MCwiZXhwIjo0OTAxNTk2MDgwLCJyb2xlIjoiYW5vbiJ9.WQf_CkFfHMkx-fHXKg1YdvNOS1uUZfMJI3xNbZVZkL4';
   const supabase = createClient(
   SUPABASE_URL,
@@ -77,7 +77,7 @@ export default function AddPillModal(): JSX.Element {
     if (validateForm()) {
       try {
         const newPill: Pill = {
-          id: Date.now().toString(),
+          id: Math.random().toString(),
           name,
           time: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           taken: false,
