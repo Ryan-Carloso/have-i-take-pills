@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { View, StyleSheet, Text, ScrollView, SafeAreaView, Animated, Modal, TouchableOpacity } from "react-native"
+import { View, StyleSheet, Text, ScrollView, SafeAreaView, Alert, Animated, Modal, TouchableOpacity } from "react-native"
 import { TextInput, Button } from "react-native-paper"
 import DateTimePicker from "@react-native-community/datetimepicker"
 import { useRouter } from "expo-router"
@@ -10,7 +10,7 @@ import { requestNotificationPermissions, registerForPushNotificationsAsync } fro
 import * as Notifications from "expo-notifications"
 import { THEME } from "@/components/Theme"
 import InsightoPage from "../../components/insigh.to/insigh.toPage"
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from "@supabase/supabase-js"
 import { getUserId } from "../../components/Analytics/UserID";
 
 interface Pill {
@@ -41,6 +41,13 @@ export default function AddPillModal(): JSX.Element {
 
     setupPush();
   }, []);
+
+  const SUPABASE_URL = 'http://supabasekong-xsow0c0oock8wooo8cg40o0c.82.29.190.97.sslip.io';
+  const SERVICE_ROLE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc0NTkyMjQ4MCwiZXhwIjo0OTAxNTk2MDgwLCJyb2xlIjoiYW5vbiJ9.WQf_CkFfHMkx-fHXKg1YdvNOS1uUZfMJI3xNbZVZkL4';
+  const supabase = createClient(
+  SUPABASE_URL,
+    SERVICE_ROLE_KEY
+  )
   const [name, setName] = useState<string>("")
   const [time, setTime] = useState<Date>(new Date())
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
@@ -76,12 +83,10 @@ export default function AddPillModal(): JSX.Element {
           taken: false,
         };
   
-        // Obtendo o ID do usuário para associar ao registro
         const userId = await getUserId();
   
-        // Enviando para o Supabase com informações adicionais
         const { data, error } = await supabase
-          .from('pills_history')
+          .from('pills')
           .insert([
             {
               name: newPill.name,
@@ -95,7 +100,12 @@ export default function AddPillModal(): JSX.Element {
           .select();
   
         if (error) {
-          console.error('Erro ao salvar no Supabase:', error);
+          console.error('Error saving to Supabase:', error);
+          // Add user-friendly error handling
+          Alert.alert(
+            'Error',
+            'Failed to save medication. Please check your internet connection and try again.'
+          );
           return;
         }
   
@@ -107,11 +117,11 @@ export default function AddPillModal(): JSX.Element {
         // Configurando notificações após salvar no Supabase
         const permissionGranted = await requestNotificationPermissions();
         if (permissionGranted) {
-          newPill.notificationId = await schedulePillNotification(name, time);
-          newPill.dailyReminderId = await Notifications.scheduleNotificationAsync({
+          // Schedule notification for the specific pill
+          newPill.notificationId = await Notifications.scheduleNotificationAsync({
             content: {
-              title: "Hora do seu medicamento!",
-              body: `Está na hora de tomar ${name}`,
+              title: "Medication Reminder",
+              body: `Time to take ${name}!`,
               sound: true,
             },
             trigger: {
@@ -121,12 +131,15 @@ export default function AddPillModal(): JSX.Element {
             },
           });
         }
-  
+
         addPill(newPill);
         router.push('/home');
       } catch (error) {
-        console.error("Erro ao adicionar pílula:", error);
+        console.error("Error adding pill:", error);
       }
+    } else {
+      // If form validation fails, show error
+      console.error("Form validation failed");
     }
   };
   
