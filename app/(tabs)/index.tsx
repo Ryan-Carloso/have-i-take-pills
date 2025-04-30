@@ -9,6 +9,7 @@ import { trackTest } from '@/components/Analytics/TrackTest';
 
 const { width, height } = Dimensions.get('window');
 
+// Dados locais de fallback
 const fallbackSlides = [
   {
     key: '1',
@@ -27,11 +28,24 @@ const fallbackSlides = [
   },
 ];
 
-// Função para pré-carregar dados do PaywallOnBoard
+// Timeout para as requisições
+const TIMEOUT_DURATION = 1000; // 1 segundo
+
+// Função para buscar dados com timeout
+const fetchWithTimeout = async (url, timeout = TIMEOUT_DURATION) => {
+  return Promise.race([
+    fetch(url),
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Timeout: Request took longer than ' + timeout + 'ms')), timeout)
+    )
+  ]);
+};
+
+// Função para pré-carregar dados do PaywallOnBoard com timeout
 const preloadPaywallData = async () => {
   try {
     // Pré-carrega os dados de preços ou outras informações necessárias
-    const response = await fetch('https://getimages-testes.vercel.app/api/paywall/info');
+    const response = await fetchWithTimeout('https://getimages-testes.vercel.app/api/paywall/info');
     const data = await response.json();
     
     // Armazena os dados no AsyncStorage para uso posterior
@@ -57,8 +71,12 @@ const Onboarding = () => {
       try {
         const value = await AsyncStorage.getItem('onboardingComplete');
         
-        if (value === 'true') {
-          // Se o onboarding já foi concluído, redirecionar para PaywallOnBoard
+        if (__DEV__) {
+          if (value === 'false') {
+            // Development mode specific logic
+          }
+        } else if (value === 'true') {
+          // Se o onboarding já foi concluído, redirecionar para home
           setOnboardingComplete(true);
           router.push('/home');
           return; // Sai da função para não carregar os slides desnecessariamente
@@ -80,34 +98,35 @@ const Onboarding = () => {
       // Inicia o pré-carregamento dos dados do paywall em paralelo
       const paywallPromise = preloadPaywallData();
       
-      // Busca os slides do onboarding
-      const res = await fetch('https://getimages-testes.vercel.app/api/onboard/dailydose'); 
-      const data = await res.json();
+      // Busca os slides do onboarding com timeout
+      try {
+        const res = await fetchWithTimeout('https://getimages-testes.vercel.app/api/onboard/dailydose');
+        const data = await res.json();
 
-      if (!data?.images || data.images.length !== 3) {
-        throw new Error('API returned invalid images');
+        if (!data?.images || data.images.length !== 3) {
+          throw new Error('API returned invalid images');
+        }
+
+        const formattedSlides = data.images.map((imageUrl, index) => ({
+          key: `${index + 1}`,
+          image: { uri: imageUrl },
+          backgroundColor: '#FFF',
+        }));
+
+        setSlides(formattedSlides);
+        trackTest('Started Onboarding - API version', 'OnboardFlow');
+      } catch (error) {
+        console.warn('Timeout ou erro ao buscar imagens do onboard. Usando fallback local:', error);
+        setSlides(fallbackSlides);
+        trackTest('Started Onboarding - Fallback version', 'OnboardFlow');
       }
-
-      const formattedSlides = data.images.map((imageUrl: string, index: number) => ({
-        key: `${index + 1}`,
-        image: { uri: imageUrl },
-        backgroundColor: '#FFF',
-      }));
-
-      setSlides(formattedSlides);
-      trackTest('Started Onboarding - API version', 'OnboardFlow');
       
       // Verifica se os dados do paywall foram carregados
       const paywallLoaded = await paywallPromise;
       setPaywallDataLoaded(paywallLoaded);
     } catch (error) {
-      console.warn('Erro ao buscar imagens do onboard. Usando fallback local:', error);
+      console.warn('Erro geral no carregamento de dados:', error);
       setSlides(fallbackSlides);
-      trackTest('Started Onboarding - Fallback version', 'OnboardFlow');
-      
-      // Tenta carregar os dados do paywall mesmo se houver erro nos slides
-      const paywallLoaded = await preloadPaywallData();
-      setPaywallDataLoaded(paywallLoaded);
     } finally {
       setLoading(false);
     }
@@ -116,9 +135,17 @@ const Onboarding = () => {
   useEffect(() => {
     const preloadPaywallImages = async () => {
       try {
-        // Pré-carrega as imagens do paywall
-        Image.prefetch('https://tlaihqorrptgeflxarvm.supabase.co/storage/v1/object/public/paywall/background.png');
-        Image.prefetch('https://tlaihqorrptgeflxarvm.supabase.co/storage/v1/object/public/paywall/icon.png');
+        // Pré-carrega as imagens do paywall com timeout
+        await Promise.race([
+          Image.prefetch('https://tlaihqorrptgeflxarvm.supabase.co/storage/v1/object/public/paywall/background.png'),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), TIMEOUT_DURATION))
+        ]);
+        
+        await Promise.race([
+          Image.prefetch('https://tlaihqorrptgeflxarvm.supabase.co/storage/v1/object/public/paywall/icon.png'),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), TIMEOUT_DURATION))
+        ]);
+        
         console.log('Imagens do paywall pré-carregadas com sucesso');
       } catch (error) {
         console.warn('Erro ao pré-carregar imagens do paywall:', error);
@@ -128,7 +155,7 @@ const Onboarding = () => {
     preloadPaywallImages();
   }, []);
 
-  const handleSlideChange = (index: number) => {
+  const handleSlideChange = (index) => {
     trackTest(`Viewing Onboarding Slide ${index + 1}`, 'OnboardFlow');
     
     // No penúltimo slide, garantimos que os dados do paywall estejam carregados

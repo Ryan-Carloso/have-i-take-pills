@@ -145,26 +145,44 @@ export default function Subscriptions() {
     >
       {product.productType === "lifetime" && (
         <View style={styles.bestValueTag}>
-          <Text style={styles.bestValueText}>BEST DEAL</Text>
+          <Text style={styles.bestValueText}>MELHOR OFERTA</Text>
         </View>
       )}
-      <Text style={styles.price}>{product.localizedPrice}</Text>
-      <Text style={styles.billingCycle}>
-        {product.productType === "subscription" ? "Monthly" : "One-time purchase"}
-      </Text>
+      <View style={styles.planContent}>
+        <Text style={styles.price}>{product.localizedPrice}</Text>
+        <Text style={styles.billingCycle}>
+          {product.productType === "subscription" 
+            ? product.productId.includes("weekly") 
+              ? "Cobrança semanal"
+              : "Cobrança mensal"
+            : "Pagamento único"}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.imageContainer}>
+        <View style={styles.header}>
           <Image
             source={require('../../assets/images/onboard/paywall.png')}
             style={styles.backgroundImage}
           />
+          <TouchableOpacity 
+            onPress={() => router.push('/home')} 
+            style={styles.closeButton}
+          >
+            <MaterialCommunityIcons name="close" size={24} color={THEME.text} />
+          </TouchableOpacity>
         </View>
+
         <View style={styles.content}>
+          <Text style={styles.title}>Escolha seu plano</Text>
+          <Text style={styles.subtitle}>
+            Desbloqueie todos os recursos e controle sua saúde
+          </Text>
+
           <View style={styles.cardsContainer}>
             {products.map(renderPlanCard)}
           </View>
@@ -184,16 +202,16 @@ export default function Subscriptions() {
               <ActivityIndicator color={THEME.white} />
             ) : (
               <Text style={styles.subscribeButtonText}>
-                Continue
+                Continuar
               </Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.RestoreButton}
+            style={styles.restoreButton}
             onPress={handleRestore}
           >
-            <Text style={styles.restoreButtonText}>Restore Purchase</Text>
+            <Text style={styles.restoreButtonText}>Restaurar Compra</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -204,105 +222,119 @@ export default function Subscriptions() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: THEME.background,
   },
   scrollContainer: {
     flexGrow: 1,
   },
-  imageContainer: {
-    paddingTop: 10,
+  header: {
+    marginTop: 10,
     height: Dimensions.get('window').height * 0.6,
-    justifyContent: 'flex-start',
+
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 1,
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 20,
+  },
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+  content: {
+    paddingHorizontal: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: THEME.text,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: THEME.textSecondary,
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  cardsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 8,
+  },
+  planCard: {
+    flex: 1,
+    backgroundColor: THEME.background,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    elevation: 2,
+    shadowColor: THEME.text,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    overflow: 'hidden',
+    maxWidth: Dimensions.get('window').width * 0.4,
+  },
+  selectedCard: {
+    borderColor: THEME.primary,
+  },
+  planContent: {
     alignItems: 'center',
+  },
+  price: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: THEME.text,
+    marginBottom: 4,
+  },
+  billingCycle: {
+    fontSize: 12,
+    color: THEME.textSecondary,
+    textAlign: 'center',
+  },
+  bestValueTag: {
+    position: 'absolute',
+    top: 8,
+    right: -28,
+    backgroundColor: THEME.warning,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    transform: [{ rotate: '45deg' }],
+    width: 100,
+  },
+  bestValueText: {
+    color: THEME.white,
+    fontSize: 10,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  subscribeButton: {
+    backgroundColor: THEME.primary,
+    paddingVertical: 8,
+    borderRadius: 30,
+    alignItems: 'center',
+    marginBottom: 12,
   },
   subscribeButtonText: {
     color: THEME.white,
     fontSize: 18,
     fontWeight: '700',
   },
-  backgroundImage: {
-    width: '90%',
-    height: '90%',
-    resizeMode: 'contain',
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
-    flex: 1,
-    justifyContent: 'space-between', // Added to distribute space
-  },
-  cardsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
-    marginTop: -20, // Added to reduce space
-  },
-  planCard: {
-    backgroundColor: THEME.background,
-    borderRadius: 16,
-    padding: 24,
-    width: width * 0.42,
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "transparent",
-    elevation: 4,
-    shadowColor: THEME.text,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    overflow: "hidden",
-  },
-  selectedCard: {
-    borderColor: THEME.primary,
-  },
-  price: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: THEME.text,
-    marginBottom: 8,
-  },
-  billingCycle: {
-    fontSize: 14,
-    color: THEME.textSecondary,
-    textAlign: 'center',
-  },
-  bestValueTag: {
-    position: "absolute",
-    top: 15,
-    right: -35,
-    backgroundColor: THEME.warning,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    transform: [{ rotate: "45deg" }],
-    width: 120,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "visible",
-  },
-  bestValueText: {
-    color: THEME.white,
-    fontSize: 13,
-    fontWeight: "800",
-  },
-  subscribeButton: {
-    backgroundColor: THEME.primary,
-    paddingVertical: 16,
-    borderRadius: 30,
+  restoreButton: {
+    paddingVertical: 6,
     alignItems: 'center',
-    marginBottom: 12,
-    width: '100%', // Added for consistency
-  },
-  RestoreButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 12,
-    borderRadius: 30,
-    alignItems: 'center',
-    width: '100%', // Added for consistency
-    marginTop: 8, // Added some spacing
   },
   restoreButtonText: {
-    color: THEME.white,
-    fontSize: 16,
+    color: THEME.textSecondary,
+    fontSize: 14,
     fontWeight: '500',
   },
   disabledButton: {
