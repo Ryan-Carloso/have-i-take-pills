@@ -92,7 +92,7 @@ export default function AddPillModal(): JSX.Element {
               name: newPill.name,
               user_id: userId,
               created_at: new Date().toISOString(),
-              scheduled_time: time.toISOString(),
+              scheduled_time: `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:00`,
               expoToken: await registerForPushNotificationsAsync()
             }
           ])
