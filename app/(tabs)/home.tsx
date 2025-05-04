@@ -1,7 +1,8 @@
 // @ts-ignore
 import React from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { ScrollView as ScrollViewNative } from 'react-native';import { ExternalPathString, router } from 'expo-router';
+import { ScrollView as ScrollViewNative } from 'react-native';
+import { ExternalPathString, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
