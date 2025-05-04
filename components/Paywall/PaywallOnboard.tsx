@@ -145,7 +145,7 @@ export default function Subscriptions() {
     >
       {product.productType === "lifetime" && (
         <View style={styles.bestValueTag}>
-          <Text style={styles.bestValueText}>MELHOR OFERTA</Text>
+          <Text style={styles.bestValueText}>BEST OFFER</Text>
         </View>
       )}
       <View style={styles.planContent}>
@@ -153,9 +153,9 @@ export default function Subscriptions() {
         <Text style={styles.billingCycle}>
           {product.productType === "subscription" 
             ? product.productId.includes("weekly") 
-              ? "Cobrança semanal"
-              : "Cobrança mensal"
-            : "Pagamento único"}
+              ? "weekly subscription"
+              : "monthly subscription"
+            : "lifetime access"}
         </Text>
       </View>
     </TouchableOpacity>
@@ -178,9 +178,9 @@ export default function Subscriptions() {
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.title}>Escolha seu plano</Text>
+          <Text style={styles.title}>Choose your plan</Text>
           <Text style={styles.subtitle}>
-            Desbloqueie todos os recursos e controle sua saúde
+          Your full health potential is one tap away — unlock it today.
           </Text>
 
           <View style={styles.cardsContainer}>
@@ -202,7 +202,7 @@ export default function Subscriptions() {
               <ActivityIndicator color={THEME.white} />
             ) : (
               <Text style={styles.subscribeButtonText}>
-                Continuar
+                Upgrade & Stay Ahead
               </Text>
             )}
           </TouchableOpacity>
@@ -211,7 +211,7 @@ export default function Subscriptions() {
             style={styles.restoreButton}
             onPress={handleRestore}
           >
-            <Text style={styles.restoreButtonText}>Restaurar Compra</Text>
+            <Text style={styles.restoreButtonText}>Restore Purchase</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   price: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '800',
     color: THEME.text,
     marginBottom: 4,
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   },
   bestValueTag: {
     position: 'absolute',
-    top: 8,
+    top: 16,
     right: -28,
     backgroundColor: THEME.warning,
     paddingHorizontal: 8,
@@ -327,10 +327,12 @@ const styles = StyleSheet.create({
     color: THEME.white,
     fontSize: 18,
     fontWeight: '700',
+    
   },
   restoreButton: {
     paddingVertical: 6,
     alignItems: 'center',
+    marginTop: 10,
   },
   restoreButtonText: {
     color: THEME.textSecondary,
