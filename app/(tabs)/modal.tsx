@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState, useEffect } from "react"
 import { View, StyleSheet, Text, ScrollView, SafeAreaView, Alert, Animated, Modal, TouchableOpacity } from "react-native"
 import { TextInput, Button } from "react-native-paper"
@@ -30,6 +28,27 @@ Notifications.setNotificationHandler({
   }),
 })
 
+// Function to get user timezone information
+const getUserTimezone = () => {
+  // Get timezone name (like "America/New_York" or "Europe/London")
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  
+  // Get timezone offset in minutes
+  const timezoneOffset = new Date().getTimezoneOffset();
+  
+  // Convert to hours and format as +/- HH:MM
+  const hours = Math.abs(Math.floor(timezoneOffset / 60));
+  const minutes = Math.abs(timezoneOffset % 60);
+  const sign = timezoneOffset > 0 ? '-' : '+'; // Note: getTimezoneOffset() returns inverted sign
+  
+  const formattedOffset = `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  
+  return {
+    name: timezone,
+    offset: formattedOffset
+  };
+};
+
 export default function AddPillModal(): JSX.Element {
   useEffect(() => {
     async function setupPush() {
@@ -45,7 +64,7 @@ export default function AddPillModal(): JSX.Element {
   const SUPABASE_URL = 'https://db.freesupabase.shop';
   const SERVICE_ROLE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc0NTkyMjQ4MCwiZXhwIjo0OTAxNTk2MDgwLCJyb2xlIjoiYW5vbiJ9.WQf_CkFfHMkx-fHXKg1YdvNOS1uUZfMJI3xNbZVZkL4';
   const supabase = createClient(
-  SUPABASE_URL,
+    SUPABASE_URL,
     SERVICE_ROLE_KEY
   )
   const [name, setName] = useState<string>("")
@@ -84,6 +103,10 @@ export default function AddPillModal(): JSX.Element {
         };
   
         const userId = await getUserId();
+        const userTimezone = getUserTimezone();
+        
+        // Format time with timezone for Supabase timetz column
+        const timeString = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:00${userTimezone.offset}`;
   
         const { data, error } = await supabase
           .from('pills')
@@ -92,7 +115,8 @@ export default function AddPillModal(): JSX.Element {
               name: newPill.name,
               user_id: userId,
               created_at: new Date().toISOString(),
-              scheduled_time: `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:00`,
+              scheduled_time: timeString,  // Now includes timezone offset
+              timezone: userTimezone.name, // Store timezone name for reference
               expoToken: await registerForPushNotificationsAsync()
             }
           ])
@@ -108,15 +132,16 @@ export default function AddPillModal(): JSX.Element {
           return;
         }
   
-        // Se salvou com sucesso no Supabase, atualiza o ID local com o ID do banco
+        // If saved successfully to Supabase, update the ID with the database ID
         if (data && data[0]) {
           newPill.id = data[0].id;
         }
   
-        // Configurando notificações após salvar no Supabase
+        // Configure notifications after saving to Supabase
         const permissionGranted = await requestNotificationPermissions();
         if (permissionGranted) {
           // Schedule notification for the specific pill
+          // The local notification will use the device's timezone automatically
           newPill.notificationId = await Notifications.scheduleNotificationAsync({
             content: {
               title: "Medication Reminder",
@@ -142,7 +167,6 @@ export default function AddPillModal(): JSX.Element {
     }
   };
   
-
   const openTimePicker = () => {
     setShowTimePicker(true)
   }
@@ -391,5 +415,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 })
-
-
