@@ -107,6 +107,7 @@ export default function AddPillModal(): JSX.Element {
         
         // Format time with timezone for Supabase timetz column
         const timeString = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:00${userTimezone.offset}`;
+        const timeSimple = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}`;
   
         const { data, error } = await supabase
           .from('pills')
@@ -117,7 +118,8 @@ export default function AddPillModal(): JSX.Element {
               created_at: new Date().toISOString(),
               scheduled_time: timeString,  // Now includes timezone offset
               timezone: userTimezone.name, // Store timezone name for reference
-              expoToken: await registerForPushNotificationsAsync()
+              expoToken: await registerForPushNotificationsAsync(),
+              time: timeSimple
             }
           ])
           .select();

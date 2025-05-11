@@ -72,7 +72,9 @@ const Onboarding = () => {
         const value = await AsyncStorage.getItem('onboardingComplete');
         
         if (__DEV__) {
-          if (value === 'false') {
+          if (value === 'true') {
+            router.push('/home');
+
             // Development mode specific logic
           }
         } else if (value === 'true') {
