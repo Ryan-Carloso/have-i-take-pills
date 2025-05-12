@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { THEME } from "@/components/Theme";
@@ -10,6 +10,7 @@ interface Pill {
   name: string;
   scheduled_time: string;
   time: string;
+  taken_count?: number;
 }
 
 interface PillItemProps {
@@ -19,16 +20,69 @@ interface PillItemProps {
 }
 
 export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
+  const [takenCount, setTakenCount] = useState(1);
+  const [isTaken, setIsTaken] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+  const [lastTakenInfo, setLastTakenInfo] = useState<string>('');
   const SUPABASE_URL = 'https://db.freesupabase.shop';
   const SERVICE_ROLE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc0NTkyMjQ4MCwiZXhwIjo0OTAxNTk2MDgwLCJyb2xlIjoiYW5vbiJ9.WQf_CkFfHMkx-fHXKg1YdvNOS1uUZfMJI3xNbZVZkL4';
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
+  // Combine both fetch operations into a single useEffect
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch taken count
+        const { data: historyData, error: historyError } = await supabase
+          .from('pill_history')
+          .select('*')
+          .eq('pill_id', pill.id);
+
+        if (!historyError && historyData) {
+          setTakenCount(historyData.length);
+        }
+
+        // Check last taken
+        const { data: lastTakenData, error: lastTakenError } = await supabase
+          .from('pill_history')
+          .select('taken_at')
+          .eq('pill_id', pill.id)
+          .order('taken_at', { ascending: false })
+          .limit(1);
+
+        if (!lastTakenError && lastTakenData && lastTakenData.length > 0) {
+          const lastTakenDate = new Date(lastTakenData[0].taken_at);
+          const today = new Date();
+          
+          const formattedDate = lastTakenDate.toLocaleDateString('pt-BR');
+          const formattedTime = lastTakenDate.toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          });
+          setLastTakenInfo(`Último: ${formattedDate} às ${formattedTime}`);
+          
+          const lastTakenDay = new Date(lastTakenDate.setHours(0,0,0,0));
+          const todayDay = new Date(today.setHours(0,0,0,0));
+          
+          const isSameDay = lastTakenDay.getTime() === todayDay.getTime();
+          setIsButtonDisabled(isSameDay);
+          setIsTaken(isSameDay);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, [pill.id]); // Add pill.id as dependency
+
   const handleUpdate = async () => {
+    if (isButtonDisabled) return;
+    
     try {
       const userId = await getUserId();
       const now = new Date();
       
-      // Registrar na tabela pill_history
       const { error } = await supabase
         .from('pill_history')
         .insert([
@@ -37,7 +91,8 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
             pill_id: pill.id,
             pill_name: pill.name,
             taken_at: now.toISOString(),
-            formatted_time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            formatted_time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            takenCount: takenCount
           }
         ]);
 
@@ -46,10 +101,14 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
         return;
       }
 
-      // Atualizar o estado da pílula
+      setIsTaken(true);
+      setIsButtonDisabled(true);
+      setTakenCount(prev => prev + 1);
+      
       const updated = {
         ...pill,
-        name: pill.name + " ✅",
+        
+        taken_count: takenCount + 1
       };
       onUpdate(updated);
     } catch (error) {
@@ -108,25 +167,31 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
   };
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity 
+      onPress={handleUpdate}
+      disabled={isButtonDisabled}
+      style={[
+        styles.card,
+        isTaken && styles.cardTaken,
+        isButtonDisabled && styles.cardDisabled
+      ]}
+    >
       <View>
         <Text style={styles.name}>{pill.name}</Text>
         <Text style={styles.time}>Horário: {pill.time}</Text>
+        <Text style={styles.count}>Tomado: {takenCount} vezes</Text>
+        {lastTakenInfo && (
+          <Text style={styles.lastTakenInfo}>{lastTakenInfo}</Text>
+        )}
+        {isTaken && <Text style={styles.takenText}>Tomado hoje</Text>}
       </View>
 
-      <View style={styles.actions}>
-        <TouchableOpacity onPress={handleUpdate} style={styles.iconButton}>
-          <Ionicons name="checkmark-circle-outline" size={24} color={THEME.primary} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={confirmDelete} style={styles.iconButton}>
-          <Ionicons name="trash-outline" size={24} color="#ff3b30" />
-        </TouchableOpacity>
-      </View>
-    </View>
+      <TouchableOpacity onPress={confirmDelete} style={styles.deleteButton}>
+        <Ionicons name="trash-outline" size={24} color="#ff3b30" />
+      </TouchableOpacity>
+    </TouchableOpacity>
   );
 }
-
-
 
 const styles = StyleSheet.create({
   card: {
@@ -143,6 +208,9 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
+  cardTaken: {
+    backgroundColor: '#e8f5e9', // cor verde clara quando tomado
+  },
   name: {
     fontSize: 18,
     fontWeight: "bold",
@@ -153,10 +221,27 @@ const styles = StyleSheet.create({
     color: "#666",
     marginTop: 4,
   },
-  actions: {
-    flexDirection: "row",
+  count: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 2,
   },
-  iconButton: {
-    marginLeft: 12,
+  deleteButton: {
+    padding: 8,
   },
+  cardDisabled: {
+    opacity: 0.7,
+  },
+  takenText: {
+    color: THEME.success,
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: 'bold',
+  },
+  lastTakenInfo: {
+    fontSize: 11,
+    color: '#666',
+    marginTop: 2,
+    fontStyle: 'italic'
+  }
 });
