@@ -2,6 +2,8 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { THEME } from "@/components/Theme";
+import { createClient } from "@supabase/supabase-js";
+import { getUserId } from "../components/Analytics/UserID";
 
 interface Pill {
   id: string;
@@ -17,12 +19,42 @@ interface PillItemProps {
 }
 
 export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
-  const handleUpdate = () => {
-    const updated = {
-      ...pill,
-      name: pill.name + " ✅",
-    };
-    onUpdate(updated);
+  const SUPABASE_URL = 'https://db.freesupabase.shop';
+  const SERVICE_ROLE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc0NTkyMjQ4MCwiZXhwIjo0OTAxNTk2MDgwLCJyb2xlIjoiYW5vbiJ9.WQf_CkFfHMkx-fHXKg1YdvNOS1uUZfMJI3xNbZVZkL4';
+  const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+  const handleUpdate = async () => {
+    try {
+      const userId = await getUserId();
+      const now = new Date();
+      
+      // Registrar na tabela pill_history
+      const { error } = await supabase
+        .from('pill_history')
+        .insert([
+          {
+            user_id: userId,
+            pill_id: pill.id,
+            pill_name: pill.name,
+            taken_at: now.toISOString(),
+            formatted_time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+
+      if (error) {
+        console.error('Erro ao salvar histórico:', error);
+        return;
+      }
+
+      // Atualizar o estado da pílula
+      const updated = {
+        ...pill,
+        name: pill.name + " ✅",
+      };
+      onUpdate(updated);
+    } catch (error) {
+      console.error('Erro ao processar atualização:', error);
+    }
   };
 
   return (
