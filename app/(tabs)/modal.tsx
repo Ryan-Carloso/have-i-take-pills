@@ -5,7 +5,6 @@ import DateTimePicker from "@react-native-community/datetimepicker"
 import { useRouter } from "expo-router"
 import { usePills } from "../../contexts/PillContext"
 import { requestNotificationPermissions, registerForPushNotificationsAsync } from "../../utils/notificationUtils"
-import * as Notifications from "expo-notifications"
 import { THEME } from "@/components/Theme"
 import InsightoPage from "../../components/insigh.to/insigh.toPage"
 import { createClient } from "@supabase/supabase-js"
@@ -20,13 +19,6 @@ interface Pill {
   dailyReminderId?: string;
 }
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-})
 
 // Function to get user timezone information
 const getUserTimezone = () => {
@@ -142,22 +134,7 @@ export default function AddPillModal(): JSX.Element {
         // Configure notifications after saving to Supabase
         const permissionGranted = await requestNotificationPermissions();
         if (permissionGranted) {
-          // Schedule notification for the specific pill
-          // The local notification will use the device's timezone automatically
-          newPill.notificationId = await Notifications.scheduleNotificationAsync({
-            content: {
-              title: "Medication Reminder",
-              body: `Time to take ${name}!`,
-              sound: true,
-            },
-            trigger: {
-              hour: time.getHours(),
-              minute: time.getMinutes(),
-              repeats: true,
-            },
-          });
         }
-
         addPill(newPill);
         router.push('/home');
       } catch (error) {
