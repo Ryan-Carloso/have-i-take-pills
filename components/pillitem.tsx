@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { THEME } from "@/components/Theme";
 import { createClient } from "@supabase/supabase-js";
@@ -57,6 +57,56 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      // Primeiro, chama o onDelete para atualizar a interface imediatamente
+      onDelete();
+
+      // Depois, deletar da tabela pills
+      const { error: pillsError } = await supabase
+        .from('pills')
+        .delete()
+        .eq('id', pill.id);
+
+      if (pillsError) {
+        console.error('Erro ao deletar da tabela pills:', pillsError);
+        Alert.alert('Erro', 'Não foi possível deletar o medicamento. Tente novamente.');
+        return;
+      }
+
+      // Por fim, deletar todo o histórico relacionado
+      const { error: historyError } = await supabase
+        .from('pill_history')
+        .delete()
+        .eq('pill_id', pill.id);
+
+      if (historyError) {
+        console.error('Erro ao deletar histórico:', historyError);
+      }
+    } catch (error) {
+      console.error('Erro ao processar deleção:', error);
+      Alert.alert('Erro', 'Ocorreu um erro ao deletar o medicamento. Tente novamente.');
+    }
+  };
+
+  const confirmDelete = () => {
+    Alert.alert(
+      'Confirmar exclusão',
+      'Tem certeza que deseja excluir este medicamento? Esta ação não pode ser desfeita.',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Excluir',
+          onPress: handleDelete,
+          style: 'destructive',
+        },
+      ],
+    );
+  };
+
   return (
     <View style={styles.card}>
       <View>
@@ -68,7 +118,7 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
         <TouchableOpacity onPress={handleUpdate} style={styles.iconButton}>
           <Ionicons name="checkmark-circle-outline" size={24} color={THEME.primary} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={onDelete} style={styles.iconButton}>
+        <TouchableOpacity onPress={confirmDelete} style={styles.iconButton}>
           <Ionicons name="trash-outline" size={24} color="#ff3b30" />
         </TouchableOpacity>
       </View>
