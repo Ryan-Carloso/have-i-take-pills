@@ -16,6 +16,7 @@ interface PillContextType {
   addPill: (pill: Pill) => void;
   togglePillTaken: (id: string) => void;
   loadPills: () => Promise<void>;
+  deletePill: (id: string) => void;
   updatePill: (updatedPill: Pill) => void;
 }
 
@@ -106,7 +107,13 @@ export const PillProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ));
   };
 
-
+  const deletePill = async (id: string) => {
+    const pillToDelete = pills.find(pill => pill.id === id);
+    if (pillToDelete?.notificationId) {
+      await cancelPillNotification(pillToDelete.notificationId);
+    }
+    setPills(prev => prev.filter(pill => pill.id !== id));
+  };
 
   const updatePill = (updatedPill: Pill) => {
     setPills(prev => prev.map(pill =>

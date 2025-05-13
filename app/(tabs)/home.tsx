@@ -37,27 +37,24 @@ export default function HomeScreen() {
                 updatePill(updatedPill);
                 loadPills(); // Recarrega a lista após atualização
               }}
-              onDelete={() => {
-                deletePill(item.id);
-                loadPills(); // Recarrega após deletar
-              }}
             />
           )}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator
-          scrollEnabled
-          bounces
+          showsVerticalScrollIndicator={true}
+          scrollEnabled={true}
+          bounces={true}
         />
       )}
 
-      <TouchableOpacity
-        onPress={() => router.push("/modal" as unknown as ExternalPathString)}
-        style={styles.fab}
-        activeOpacity={0.9}
-      >
-        <Ionicons name="add" size={24} color="white" />
-      </TouchableOpacity>
+<TouchableOpacity
+  onPress={() => router.push("/modal" as unknown as ExternalPathString)}
+  style={styles.fab}
+  activeOpacity={0.9}
+>
+  <Ionicons name="add" size={24} color="white" />
+</TouchableOpacity>
+
     </View>
   );
 }
@@ -66,6 +63,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: THEME.background,
+  },
+  header: {
+    backgroundColor: THEME.primary,
+    paddingTop: 60,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomRightRadius: 24,
+    borderBottomLeftRadius: 24,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: 'white',
+    textAlign: 'center',
   },
   listContent: {
     padding: 16,
