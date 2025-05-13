@@ -55,10 +55,17 @@ export default function AddPillModal(): JSX.Element {
 
   const SUPABASE_URL = 'https://db.freesupabase.shop';
   const SERVICE_ROLE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc0NTkyMjQ4MCwiZXhwIjo0OTAxNTk2MDgwLCJyb2xlIjoiYW5vbiJ9.WQf_CkFfHMkx-fHXKg1YdvNOS1uUZfMJI3xNbZVZkL4';
-  const supabase = createClient(
-    SUPABASE_URL,
-    SERVICE_ROLE_KEY
-  )
+  
+  const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+    auth: {
+      persistSession: false
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 2
+      }
+    }
+  });
   const [name, setName] = useState<string>("")
   const [time, setTime] = useState<Date>(new Date())
   const [errors, setErrors] = useState<{ [key: string]: string }>({})

@@ -6,9 +6,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { Tabs } from "expo-router";
 import { PillProvider } from "../../contexts/PillContext";
 import { StatusBar } from "react-native";
-import { THEME } from '@/components/Theme'
-
-
+import { THEME } from '@/components/Theme';
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
@@ -17,7 +15,7 @@ function TabBarIcon(props: {
   return <FontAwesome size={28} {...props} />;
 }
 
-export default function TabLayout() {
+const TabLayout = () => {
   return (
     <PillProvider> 
       <StatusBar barStyle="dark-content" backgroundColor="#000" />
@@ -25,12 +23,11 @@ export default function TabLayout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            marginBottom: 0, // Ajuste conforme necessário
-            backgroundColor: "white", // Ajuste a cor conforme o design
+            marginBottom: 0,
+            backgroundColor: "white",
           },
-          tabBarActiveTintColor: THEME.primary, // Add this line to change active tab title color
-          tabBarInactiveTintColor: 'gray', // Add this line to change inactive tab title color
-
+          tabBarActiveTintColor: THEME.primary,
+          tabBarInactiveTintColor: 'gray',
         }}
       >
       <Tabs.Screen
@@ -97,3 +94,5 @@ export default function TabLayout() {
     </PillProvider>
   );
 }
+
+export default TabLayout;
