@@ -78,12 +78,12 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
       const now = new Date();
 
       // Format for UI
-      const dateStr = last.toLocaleDateString("pt-BR");
-      const timeStr = last.toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
+      const dateStr = last.toLocaleDateString('en-US');
+      const timeStr = last.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
       });
-      const info = `Último: ${dateStr} às ${timeStr}`;
+      const info = `Last: ${dateStr} at ${timeStr}`;
       if (info !== lastTakenInfo) {
         setLastTakenInfo(info);
       }
@@ -122,16 +122,16 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
           pill_id: pill.id,
           pill_name: pill.name,
           taken_at: now.toISOString(),
-          formatted_time: now.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
+          formatted_time: now.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
           }),
           takenCount,
         },
       ]);
 
       if (error) {
-        console.error("Erro ao salvar histórico:", error);
+        console.error("Error saving history:", error);
         return;
       }
 
@@ -144,7 +144,7 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
         taken_count: takenCount + 1,
       });
     } catch (err) {
-      console.error("Erro ao processar atualização:", err);
+      console.error("Error processing update:", err);
     }
   };
 
@@ -158,10 +158,10 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
         .eq("id", pill.id);
 
       if (pillsError) {
-        console.error("Erro ao deletar da tabela pills:", pillsError);
+        console.error("Error deleting from pills table:", pillsError);
         Alert.alert(
-          "Erro",
-          "Não foi possível deletar o medicamento. Tente novamente."
+          "Error",
+          "Could not delete the medication. Please try again."
         );
         return;
       }
@@ -172,24 +172,24 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
         .eq("pill_id", pill.id);
 
       if (historyError) {
-        console.error("Erro ao deletar histórico:", historyError);
+        console.error("Error deleting history:", historyError);
       }
     } catch (err) {
-      console.error("Erro ao processar deleção:", err);
+      console.error("Error processing deletion:", err);
       Alert.alert(
-        "Erro",
-        "Ocorreu um erro ao deletar o medicamento. Tente novamente."
+        "Error",
+        "An error occurred while deleting the medication. Please try again."
       );
     }
   };
 
   const confirmDelete = () => {
     Alert.alert(
-      "Confirmar exclusão",
-      "Tem certeza que deseja excluir este medicamento? Esta ação não pode ser desfeita.",
+      "Confirm deletion",
+      "Are you sure you want to delete this medication? This action cannot be undone.",
       [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Excluir", style: "destructive", onPress: handleDelete },
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: handleDelete },
       ]
     );
   };
@@ -206,12 +206,12 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
     >
       <View>
         <Text style={styles.name}>{pill.name}</Text>
-        <Text style={styles.time}>Horário: {pill.time}</Text>
-        <Text style={styles.count}>Tomado: {takenCount} vezes</Text>
+        <Text style={styles.time}>Time: {pill.time}</Text>
+        <Text style={styles.count}>Taken: {takenCount} times</Text>
         {lastTakenInfo.length > 0 && (
           <Text style={styles.lastTakenInfo}>{lastTakenInfo}</Text>
         )}
-        {isTaken && <Text style={styles.takenText}>Tomado hoje</Text>}
+        {isTaken && <Text style={styles.takenText}>Taken today</Text>}
       </View>
       <TouchableOpacity onPress={confirmDelete} style={styles.deleteButton}>
         <Ionicons name="trash-outline" size={24} color="#ff3b30" />
