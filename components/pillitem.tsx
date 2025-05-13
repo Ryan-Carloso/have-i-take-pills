@@ -35,79 +35,66 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
     []
   );
 
-  // Effect #1: fetch total taken count
+  // Combined useEffect to fetch both count and last taken info
   useEffect(() => {
     let isMounted = true;
 
-    const fetchCount = async () => {
-      const { data, error, count } = await supabase
-        .from("pill_history")
-        .select("id", { count: "exact", head: true })
-        .eq("pill_id", pill.id);
+    const fetchData = async () => {
+      try {
+        // 1. Fetch total taken count
+        const { count, error: countError } = await supabase
+          .from("pill_history")
+          .select("id", { count: "exact", head: true })
+          .eq("pill_id", pill.id);
+          
+        if (!isMounted) return;
+        
+        if (!countError && typeof count === "number") {
+          setTakenCount(count);
+        }
 
-      if (!isMounted || error) return;
+        // 2. Fetch last taken info
+        const { data, error } = await supabase
+          .from("pill_history")
+          .select("taken_at")
+          .eq("pill_id", pill.id)
+          .order("taken_at", { ascending: false })
+          .limit(1);
 
-      // count may be null if head/select not supported—fallback to data length
-      const newCount = typeof count === "number" ? count : data?.length ?? 0;
-      if (newCount !== takenCount) {
-        setTakenCount(newCount);
-      }
-    };
+        if (!isMounted || error || !data || data.length === 0) return;
 
-    fetchCount();
-    return () => {
-      isMounted = false;
-    };
-  }, [pill.id, supabase, takenCount]);
+        const last = new Date(data[0].taken_at);
+        const now = new Date();
 
-  // Effect #2: fetch last taken info & today check
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchLastTaken = async () => {
-      const { data, error } = await supabase
-        .from("pill_history")
-        .select("taken_at")
-        .eq("pill_id", pill.id)
-        .order("taken_at", { ascending: false })
-        .limit(1);
-
-      if (!isMounted || error || !data || data.length === 0) return;
-
-      const last = new Date(data[0].taken_at);
-      const now = new Date();
-
-      // Format for UI
-      const dateStr = last.toLocaleDateString('en-US');
-      const timeStr = last.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      const info = `Last: ${dateStr} at ${timeStr}`;
-      if (info !== lastTakenInfo) {
+        // Format for UI
+        const dateStr = last.toLocaleDateString('en-US');
+        const timeStr = last.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const info = `Last: ${dateStr} at ${timeStr}`;
         setLastTakenInfo(info);
-      }
 
-      // Check if it was taken today
-      const lastDay = new Date(last);
-      const today = new Date(now);
-      lastDay.setHours(0, 0, 0, 0);
-      today.setHours(0, 0, 0, 0);
-      const sameDay = lastDay.getTime() === today.getTime();
+        // Check if it was taken today
+        const lastDay = new Date(last);
+        const today = new Date(now);
+        lastDay.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        const sameDay = lastDay.getTime() === today.getTime();
 
-      if (sameDay !== isTaken) {
         setIsTaken(sameDay);
-      }
-      if (sameDay !== isButtonDisabled) {
         setIsButtonDisabled(sameDay);
+      } catch (err) {
+        console.error("Error fetching pill data:", err);
       }
     };
 
-    fetchLastTaken();
+    fetchData();
+    
     return () => {
       isMounted = false;
     };
-  }, [pill.id, supabase, isTaken, isButtonDisabled, lastTakenInfo]);
+  }, [pill.id, supabase]); // Only depend on stable values
 
   const handleUpdate = async () => {
     if (isButtonDisabled) return;
@@ -126,7 +113,6 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
             hour: '2-digit',
             minute: '2-digit'
           }),
-          takenCount,
         },
       ]);
 
@@ -135,13 +121,24 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
         return;
       }
 
+      // Update local state
+      const newCount = takenCount + 1;
+      setTakenCount(newCount);
       setIsTaken(true);
       setIsButtonDisabled(true);
-      setTakenCount((prev) => prev + 1);
+      
+      // Format for UI
+      const dateStr = now.toLocaleDateString('en-US');
+      const timeStr = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      setLastTakenInfo(`Last: ${dateStr} at ${timeStr}`);
 
+      // Update parent component
       onUpdate({
         ...pill,
-        taken_count: takenCount + 1,
+        taken_count: newCount,
       });
     } catch (err) {
       console.error("Error processing update:", err);
@@ -150,6 +147,7 @@ export default function PillItem({ pill, onUpdate, onDelete }: PillItemProps) {
 
   const handleDelete = async () => {
     try {
+      // First notify parent component
       onDelete();
 
       const { error: pillsError } = await supabase

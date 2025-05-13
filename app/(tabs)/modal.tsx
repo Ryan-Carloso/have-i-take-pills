@@ -41,7 +41,7 @@ const getUserTimezone = () => {
   };
 };
 
-export default function AddPillModal(): JSX.Element {
+const AddPillModal = (): JSX.Element => {
   useEffect(() => {
     async function setupPush() {
       const token = await registerForPushNotificationsAsync();
@@ -401,3 +401,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 })
+
+
+// Rename the export to avoid conflict with react-native Modal
+export default function ModalScreen() {
+  return <AddPillModal />;
+}
